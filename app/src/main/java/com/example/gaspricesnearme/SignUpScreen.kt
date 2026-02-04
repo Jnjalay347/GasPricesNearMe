@@ -129,6 +129,9 @@ fun SignUpScreen(
     }
 }
 
+// --------------------------------------------------------------------------
+// PREVIEW FUNCTION
+// --------------------------------------------------------------------------
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
