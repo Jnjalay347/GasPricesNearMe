@@ -1,1 +1,32 @@
-/build
+# Gradle
+.gradle/
+build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Local machine config
+local.properties
+
+# Caches / binaries
+*.lock
+*.bin
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+*.apks
+
+# External native builds
+.externalNativeBuild/
+.cxx/
+
+# Keystore
+*.jks
+*.keystore
