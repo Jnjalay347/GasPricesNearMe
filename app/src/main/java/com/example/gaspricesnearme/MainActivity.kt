@@ -142,7 +142,13 @@ fun GasPricesNearMeApp() {
                 when (currentDestination) {
                     AppDestinations.HOME -> Text("Insert Google Maps Here")
                     AppDestinations.USER_REPORT -> Text("User Report Form Goes Here")
-                    AppDestinations.SETTINGS -> Text("Settings Page Goes Here")
+                    AppDestinations.SETTINGS -> {
+                        SettingsScreen(
+                            onNavigateToSubmenu = {
+                                // Placeholder
+                            }
+                        )
+                    }
                 }
             }
         }
