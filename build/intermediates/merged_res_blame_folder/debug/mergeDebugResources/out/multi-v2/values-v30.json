@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.gaspricesnearme-mergeDebugResources-64:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\jnjal\\.gradle\\caches\\9.1.0\\transforms\\b23d558aa3746f9337623122b779bfdc\\workspace\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}
