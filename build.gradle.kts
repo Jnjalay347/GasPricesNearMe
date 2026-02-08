@@ -7,6 +7,16 @@ android {
     namespace = "com.example.gaspricesnearme"
     compileSdk = 34
 
+    // ADD THIS BLOCK TO FIX THE PATH
+    sourceSets {
+        getByName("main") {
+            manifest.srcFile("app/src/main/AndroidManifest.xml")
+            java.srcDirs("app/src/main/java")
+            res.srcDirs("app/src/main/res")
+            assets.srcDirs("app/src/main/assets")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.gaspricesnearme"
         minSdk = 24
