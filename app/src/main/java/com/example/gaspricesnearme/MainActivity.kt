@@ -28,7 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.gaspricesnearme.ui.theme.GasPricesNearMeTheme
+import globus.glmap.GLMapView
+import globus.glmap.MapGeoPoint
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,7 +143,7 @@ fun GasPricesNearMeApp() {
                 contentAlignment = Alignment.Center
             ) {
                 when (currentDestination) {
-                    AppDestinations.HOME -> Text("Insert Google Maps Here")
+                    AppDestinations.HOME -> MapsScreen()
                     AppDestinations.USER_REPORT -> Text("User Report Form Goes Here")
                     AppDestinations.SETTINGS -> {
                         SettingsScreen(
@@ -153,6 +156,20 @@ fun GasPricesNearMeApp() {
             }
         }
     }
+}
+
+@Composable
+fun MapsScreen() {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            GLMapView(context).apply {
+                // Set initial position (San Francisco)
+                renderer.setMapGeoCenter(MapGeoPoint(37.7749, -122.4194))
+                renderer.mapZoom = 12.0
+            }
+        }
+    )
 }
 
 enum class AppDestinations(val label: String, val icon: ImageVector) {
