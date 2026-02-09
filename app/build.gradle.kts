@@ -76,4 +76,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Globus
+    implementation("globus:glmap:1.12.0")
+    implementation("globus:glroute:1.12.0")  // Optional: for routing
+    implementation("globus:glsearch:1.12.0") // Optional: for search
+
 }
