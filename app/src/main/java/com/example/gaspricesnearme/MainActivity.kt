@@ -4,14 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -19,35 +13,24 @@ import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.example.gaspricesnearme.ui.theme.GasPricesNearMeTheme
-import globus.glmap.GLMapView
-import globus.glmap.MapGeoPoint
+
+// Google Maps Imports
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +56,6 @@ enum class AuthState {
 
 @Composable
 fun RootApp() {
-    // This state tracks where the user is: Sign In, Sign Up, or Home
     var currentAuthState by rememberSaveable { mutableStateOf(AuthState.SIGN_IN) }
 
     when (currentAuthState) {
@@ -103,6 +85,9 @@ fun RootApp() {
 @PreviewScreenSizes
 @Composable
 fun GasPricesNearMeApp() {
+    // State to track if a specific station is selected for Detail View
+    var selectedStation by remember { mutableStateOf<GasStation?>(null) }
+
     var currentDestination by rememberSaveable {
         mutableStateOf(AppDestinations.HOME)
     }
@@ -111,62 +96,59 @@ fun GasPricesNearMeApp() {
         mutableStateOf("")
     }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                if (currentDestination == AppDestinations.HOME) {
-                    TopAppBar(
-                        title = {
-                            OutlinedTextField(
-                                value = locationSearchBar,
-                                onValueChange = { locationSearchBar = it },
-                                label = { Text("Location") },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search Icon"
-                                    )
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+    // IF a station is selected, we show the Detail Screen fullscreen
+    if (selectedStation != null) {
+        StationDetailScreen(
+            station = selectedStation!!,
+            onBack = { selectedStation = null } // Go back to Map/List
+        )
+    } else {
+        // ELSE show the standard Bottom Navigation App
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                AppDestinations.entries.forEach {
+                    item(
+                        icon = { Icon(it.icon, contentDescription = it.label) },
+                        label = { Text(it.label) },
+                        selected = it == currentDestination,
+                        onClick = { currentDestination = it }
                     )
                 }
             }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                when (currentDestination) {
-                    AppDestinations.HOME -> MapsScreen()
-                    AppDestinations.USER_REPORT -> ReportScreen()
-                    AppDestinations.SETTINGS -> {
-                        SettingsScreen(
-                            onNavigateToSubmenu = {
-                                // Placeholder
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    if (currentDestination == AppDestinations.HOME) {
+                        TopAppBar(
+                            title = {
+                                OutlinedTextField(
+                                    value = locationSearchBar,
+                                    onValueChange = { locationSearchBar = it },
+                                    label = { Text("Location") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Search, contentDescription = "Search")
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                         )
+                    }
+                }
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when (currentDestination) {
+                        AppDestinations.HOME -> MapsScreen(
+                            onStationClick = { station -> selectedStation = station }
+                        )
+                        AppDestinations.USER_REPORT -> ReportScreen()
+                        AppDestinations.SETTINGS -> SettingsScreen(onNavigateToSubmenu = {})
                     }
                 }
             }
@@ -176,23 +158,27 @@ fun GasPricesNearMeApp() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapsScreen() {
+fun MapsScreen(onStationClick: (GasStation) -> Unit) {
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.PartiallyExpanded
         )
     )
 
-    // Mock data for the cards
+    // Mock data with added distance and rating
     val gasStations = remember {
         listOf(
-            GasStation("Shell", "123 Main St", "$4.50"),
-            GasStation("Chevron", "456 Market St", "$4.65"),
-            GasStation("7-Eleven", "789 Mission St", "$4.45"),
-            GasStation("Costco", "101 10th St", "$4.20"),
-            GasStation("Arco", "202 Valencia St", "$4.35"),
-            GasStation("Safeway", "303 Diamond St", "$4.55")
+            GasStation("Shell", "123 Main St", "$4.50", "0.5", 4.2f, LatLng(37.7749, -122.4194)),
+            GasStation("Chevron", "456 Market St", "$4.65", "0.8", 3.8f, LatLng(37.7849, -122.4094)),
+            GasStation("7-Eleven", "789 Mission St", "$4.45", "1.1", 4.0f, LatLng(37.7649, -122.4294)),
+            GasStation("Costco", "101 10th St", "$4.20", "2.3", 4.8f, LatLng(37.7549, -122.4394)),
+            GasStation("Arco", "202 Valencia St", "$4.35", "3.0", 3.5f, LatLng(37.7449, -122.4494)),
+            GasStation("Safeway", "303 Diamond St", "$4.55", "3.2", 4.1f, LatLng(37.7349, -122.4594))
         )
+    }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(37.7749, -122.4194), 12f)
     }
 
     BottomSheetScaffold(
@@ -209,46 +195,47 @@ fun MapsScreen() {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     items(gasStations) { station ->
-                        GasStationCard(station)
+                        GasStationCard(station, onClick = { onStationClick(station) })
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
         }
-    ) { innerPadding ->
-        AndroidView(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            factory = { context ->
-                GLMapView(context).apply {
-                    // Postpone setting renderer properties until it's initialized
-                    post {
-                        renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
-                        renderer.mapZoom = 12.0
-                        }
-                }
+    ) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState
+        ) {
+            gasStations.forEach { station ->
+                Marker(
+                    state = MarkerState(position = station.location),
+                    title = station.name,
+                    snippet = station.price,
+                    onClick = {
+                        onStationClick(station)
+                        true
+                    }
+                )
             }
-        )
+        }
     }
 }
 
 @Composable
-fun GasStationCard(station: GasStation) {
+fun GasStationCard(station: GasStation, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick() } // Make the whole card clickable
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(text = station.name, style = MaterialTheme.typography.titleMedium)
                 Text(text = station.address, style = MaterialTheme.typography.bodyMedium)
                 Text(
@@ -257,14 +244,22 @@ fun GasStationCard(station: GasStation) {
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            Button(onClick = { /* TODO */ }) {
-                // Empty button
+            Button(onClick = onClick) {
+                Text("View")
             }
         }
     }
 }
 
-data class GasStation(val name: String, val address: String, val price: String)
+// Updated Data Class to support Detail View
+data class GasStation(
+    val name: String,
+    val address: String,
+    val price: String,
+    val distance: String, // Added
+    val rating: Float,    // Added
+    val location: LatLng
+)
 
 enum class AppDestinations(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Default.Home),
