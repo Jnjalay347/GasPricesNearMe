@@ -226,8 +226,11 @@ fun MapsScreen() {
                 .padding(innerPadding),
             factory = { context ->
                 GLMapView(context).apply {
-                    renderer.setMapGeoCenter(MapGeoPoint(37.7749, -122.4194))
-                    renderer.mapZoom = 12.0
+                    // Postpone setting renderer properties until it's initialized
+                    post {
+                        renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
+                        renderer.mapZoom = 12.0
+                        }
                 }
             }
         )
