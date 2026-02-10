@@ -89,6 +89,7 @@ fun ReportScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
+            singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
 
