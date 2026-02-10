@@ -3,7 +3,7 @@ package com.example.gaspricesnearme
 import android.app.Application
 import globus.glmap.GLMapManager
 
-class MapScreen : Application() {
+class GasPricesApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
