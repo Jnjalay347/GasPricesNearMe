@@ -160,7 +160,7 @@ fun GasPricesNearMeApp() {
             ) {
                 when (currentDestination) {
                     AppDestinations.HOME -> MapsScreen()
-                    AppDestinations.USER_REPORT -> Text("User Report Form Goes Here")
+                    AppDestinations.USER_REPORT -> ReportScreen()
                     AppDestinations.SETTINGS -> {
                         SettingsScreen(
                             onNavigateToSubmenu = {
