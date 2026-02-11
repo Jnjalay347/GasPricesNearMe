@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -41,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -183,15 +187,18 @@ fun MapsScreen() {
         )
     )
 
-    // Mock data for the cards
+    // Track currently selected station. Null = Show List; Not Null = Show Details
+    var selectedStation by remember { mutableStateOf<GasStation?>(null) }
+
+    // Mock data for the cards (Updated with Distance and Rating)
     val gasStations = remember {
         listOf(
-            GasStation("Shell", "123 Main St", "$4.50"),
-            GasStation("Chevron", "456 Market St", "$4.65"),
-            GasStation("7-Eleven", "789 Mission St", "$4.45"),
-            GasStation("Costco", "101 10th St", "$4.20"),
-            GasStation("Arco", "202 Valencia St", "$4.35"),
-            GasStation("Safeway", "303 Diamond St", "$4.55")
+            GasStation("Shell", "123 Main St", "$4.50", "0.2 mi", 4.5f),
+            GasStation("Chevron", "456 Market St", "$4.65", "0.5 mi", 3.8f),
+            GasStation("7-Eleven", "789 Mission St", "$4.45", "1.2 mi", 4.0f),
+            GasStation("Costco", "101 10th St", "$4.20", "2.5 mi", 4.8f),
+            GasStation("Arco", "202 Valencia St", "$4.35", "3.0 mi", 3.5f),
+            GasStation("Safeway", "303 Diamond St", "$4.55", "3.2 mi", 4.2f)
         )
     }
 
@@ -199,48 +206,74 @@ fun MapsScreen() {
         scaffoldState = scaffoldState,
         sheetPeekHeight = 120.dp,
         sheetContent = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Nearby Gas Prices",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
+            // Logic: If a station is selected, show DetailScreen. Otherwise, show List.
+            if (selectedStation != null) {
+                // Show Detail View
+                // Note: Ensure DetailScreen.kt is created or pasted in this file
+                DetailScreen(
+                    station = selectedStation!!,
+                    onDirectionsClick = {
+                        // TODO: Handle Google Maps Intent here
+                    }
                 )
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
+            } else {
+                // Show List View
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    items(gasStations) { station ->
-                        GasStationCard(station)
-                        Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Nearby Gas Prices",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(gasStations) { station ->
+                            GasStationCard(
+                                station = station,
+                                onClick = { selectedStation = station } // Set selected station
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
         }
     ) { innerPadding ->
-        AndroidView(
+        // Main Map Background
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            factory = { context ->
-                GLMapView(context).apply {
-                    // Postpone setting renderer properties until it's initialized
-                    post {
-                        renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
-                        renderer.mapZoom = 12.0
+                .padding(innerPadding)
+                // Clicking the map background deselects the station (returns to list)
+                .clickable { selectedStation = null }
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    GLMapView(context).apply {
+                        // Postpone setting renderer properties until it's initialized
+                        post {
+                            renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
+                            renderer.mapZoom = 12.0
                         }
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 
 @Composable
-fun GasStationCard(station: GasStation) {
+fun GasStationCard(station: GasStation, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick() } // Make the entire card clickable
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -257,14 +290,23 @@ fun GasStationCard(station: GasStation) {
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            Button(onClick = { /* TODO */ }) {
-                // Empty button
-            }
+            // Arrow Icon to indicate clickability
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "View Details"
+            )
         }
     }
 }
 
-data class GasStation(val name: String, val address: String, val price: String)
+// Updated Data Class with Distance and Rating
+data class GasStation(
+    val name: String,
+    val address: String,
+    val price: String,
+    val distance: String,
+    val rating: Float
+)
 
 enum class AppDestinations(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Default.Home),
