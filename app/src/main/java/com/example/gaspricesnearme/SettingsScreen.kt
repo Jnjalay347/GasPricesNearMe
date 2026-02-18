@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
+// ---------------------------------------------------------
+// Settings Screen 1-6
+// ---------------------------------------------------------
+
 @Composable
 fun SettingsScreen(
     onNavigateToSubmenu: () -> Unit
