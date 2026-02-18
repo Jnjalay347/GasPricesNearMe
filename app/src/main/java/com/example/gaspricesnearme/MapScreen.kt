@@ -3,6 +3,10 @@ package com.example.gaspricesnearme
 import android.app.Application
 import globus.glmap.GLMapManager
 
+// ---------------------------------------------------------
+// Map Widget and Screen 1-3 and 3-1
+// ---------------------------------------------------------
+
 class MapScreen : Application() {
     override fun onCreate() {
         super.onCreate()
