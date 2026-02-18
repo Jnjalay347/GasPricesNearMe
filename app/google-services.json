@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "676624561870",
+    "project_id": "gas-prices-near-me",
+    "storage_bucket": "gas-prices-near-me.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676624561870:android:1ee1be224cb133d2c5429f",
+        "android_client_info": {
+          "package_name": "com.example.gaspricesnearme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4CbVYD_yX59eUrKtUPbFixMwv96x7AuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

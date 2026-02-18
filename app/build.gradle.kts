@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -81,5 +82,7 @@ dependencies {
     implementation("globus:glmap:1.12.0")
     implementation("globus:glroute:1.12.0")  // Optional: for routing
     implementation("globus:glsearch:1.12.0") // Optional: for search
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    implementation("com.google.firebase:firebase-analytics")
 
 }
