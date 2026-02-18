@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.LineHeightStyle
 
+// ---------------------------------------------------------
+// Report Screen 1-7
+// ---------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
 }
 
 // ---------------------------------------------------------
-// Navigation Logic
+// Navigation Logic 1-1
 // ---------------------------------------------------------
 
 enum class AuthState {
@@ -100,7 +100,7 @@ fun RootApp() {
 }
 
 // ---------------------------------------------------------
-// Main App (Map & Tabs)
+// Main App (Map & Tabs) 1-1
 // ---------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,6 +177,11 @@ fun GasPricesNearMeApp() {
         }
     }
 }
+
+// ---------------------------------------------------------
+// Maps Screen and List View Scaffold 1-3 and 1-4
+// ---------------------------------------------------------
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -299,7 +304,7 @@ fun GasStationCard(station: GasStation, onClick: () -> Unit) {
     }
 }
 
-// Updated Data Class with Distance and Rating
+// Data Class for Gas Stations
 data class GasStation(
     val name: String,
     val address: String,
@@ -308,6 +313,7 @@ data class GasStation(
     val rating: Float
 )
 
+// Enum for Nav
 enum class AppDestinations(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Default.Home),
     USER_REPORT("User Report", Icons.AutoMirrored.Filled.NoteAdd),
