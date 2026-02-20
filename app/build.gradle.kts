@@ -84,5 +84,5 @@ dependencies {
     implementation("globus:glsearch:1.12.0") // Optional: for search
     implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-analytics")
-
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }
