@@ -39,8 +39,8 @@ class CurLocationHelper(private val renderer: GLMapViewRenderer) {
 
     init {
         val manager = renderer.attachedView.context.assets
-        userLocationImage = createImage(manager, "circle_new.svg")
-        userMovementImage = createImage(manager, "arrow_new.svg")
+        userLocationImage = createImage(manager, "circle.svg")
+        userMovementImage = createImage(manager, "arrow.svg")
         accuracyCircle = createAccuracyCircle()
     }
 
