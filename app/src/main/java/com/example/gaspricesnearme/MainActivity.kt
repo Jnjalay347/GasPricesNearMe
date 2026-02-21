@@ -333,6 +333,29 @@ fun MapsScreen() {
                             renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
                             renderer.mapZoom = 10.0
                             locationHelper = CurLocationHelper(renderer)
+
+                            val pinMarker = MapPinMarker(
+                                renderer = renderer,
+                                assets = context.assets
+                            )
+
+                            // Single Map pin (hard-coded, for now)
+                            pinMarker.addMapPin(
+                                37.7749,
+                                -122.4194,
+                                "pin.svg"
+                            )
+
+//                            // Multiple Map pins (hard-coded, for now)
+//                            pinMarker.addMultipleMapPins(
+//                                listOf(
+//                                    37.8199 to -122.4783,
+//                                    37.8267 to -122.4230,
+//                                    37.8080 to -122.4177,
+//                                    37.8021 to -122.4187
+//                                ),
+//                                "pin.svg"
+//                            )
                         }
                     }
                 }
