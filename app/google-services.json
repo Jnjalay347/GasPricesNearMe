@@ -12,7 +12,20 @@
           "package_name": "com.example.gaspricesnearme"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "676624561870-2gq5m4f27i1cv3sklhtmvnhshh7oa7dj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gaspricesnearme",
+            "certificate_hash": "9ffe8b6aefdb0e3c58c59bde5f342d834d12f173"
+          }
+        },
+        {
+          "client_id": "676624561870-6ietmhn1rci6vnc42ob8e80rdtgq3gpa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA4CbVYD_yX59eUrKtUPbFixMwv96x7AuM"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676624561870-6ietmhn1rci6vnc42ob8e80rdtgq3gpa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
