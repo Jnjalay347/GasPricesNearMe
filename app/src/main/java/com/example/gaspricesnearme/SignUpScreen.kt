@@ -155,6 +155,7 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Main Action Button
             Button(
                 onClick = {
                     isLoading = true
@@ -195,6 +196,7 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Google Button
             OutlinedButton(
                 onClick = {
                     scope.launch {

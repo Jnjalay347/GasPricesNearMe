@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 import kotlin.math.roundToInt
 
 // ---------------------------------------------------------
@@ -22,7 +23,8 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(
-    onNavigateToSubmenu: () -> Unit
+    onNavigateToSubmenu: () -> Unit,
+    onSignOut: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -173,6 +175,18 @@ fun SettingsScreen(
             thickness = 1.dp,
             color = Color.Gray
         )
+
+        // Sign out Button
+        Button(
+            onClick = {
+                FirebaseAuth.getInstance().signOut()
+                onSignOut()
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text("Sign Out", color = Color.White, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 
