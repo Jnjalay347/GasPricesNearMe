@@ -89,15 +89,23 @@ enum class AuthState {
 
 @Composable
 fun RootApp() {
+
+    //Change to false to test sign in
+    val testing = true
+
     //Checks if user is logged in already
-    val initialState = if (FirebaseAuth.getInstance().currentUser != null) {
+    val initialState = if (testing) {
         AuthState.LOGGED_IN
-    }
-    else {
+    } else if (FirebaseAuth.getInstance().currentUser != null) {
+        AuthState.LOGGED_IN
+    } else {
         AuthState.SIGN_IN
     }
+
+
     // This state tracks where the user is: Sign In, Sign Up, or Home
     var currentAuthState by rememberSaveable { mutableStateOf(initialState) }
+
 
     when (currentAuthState) {
         AuthState.SIGN_IN -> {

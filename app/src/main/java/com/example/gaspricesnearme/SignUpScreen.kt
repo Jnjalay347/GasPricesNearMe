@@ -202,7 +202,7 @@ fun SignUpScreen(
                     scope.launch {
                         try {
                             val credentialManager = CredentialManager.create(context)
-                            val signInWithGoogleOption = GetSignInWithGoogleOption.Builder("676624561870-2gq5m4f27i1cv3sklhtmvnhshh7oa7dj.apps.googleusercontent.com")
+                            val signInWithGoogleOption = GetSignInWithGoogleOption.Builder("676624561870-6ietmhn1rci6vnc42ob8e80rdtgq3gpa.apps.googleusercontent.com")
                                 .build()
                             val request = GetCredentialRequest.Builder()
                                 .addCredentialOption(signInWithGoogleOption)
