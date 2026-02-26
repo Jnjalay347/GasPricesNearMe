@@ -61,6 +61,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.firebase.auth.FirebaseAuth
 import globus.glmap.GLMapView
 import globus.glmap.MapGeoPoint
 
@@ -88,8 +89,23 @@ enum class AuthState {
 
 @Composable
 fun RootApp() {
+
+    //Change to false to test sign in
+    val testing = true
+
+    //Checks if user is logged in already
+    val initialState = if (testing) {
+        AuthState.LOGGED_IN
+    } else if (FirebaseAuth.getInstance().currentUser != null) {
+        AuthState.LOGGED_IN
+    } else {
+        AuthState.SIGN_IN
+    }
+
+
     // This state tracks where the user is: Sign In, Sign Up, or Home
-    var currentAuthState by rememberSaveable { mutableStateOf(AuthState.SIGN_IN) }
+    var currentAuthState by rememberSaveable { mutableStateOf(initialState) }
+
 
     when (currentAuthState) {
         AuthState.SIGN_IN -> {
@@ -105,7 +121,7 @@ fun RootApp() {
             )
         }
         AuthState.LOGGED_IN -> {
-            GasPricesNearMeApp()
+            GasPricesNearMeApp(onSignOut = {currentAuthState = AuthState.SIGN_IN})
         }
     }
 }
@@ -117,7 +133,7 @@ fun RootApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @PreviewScreenSizes
 @Composable
-fun GasPricesNearMeApp() {
+fun GasPricesNearMeApp(onSignOut: () -> Unit = {}) {
     var currentDestination by rememberSaveable {
         mutableStateOf(AppDestinations.HOME)
     }
@@ -125,6 +141,7 @@ fun GasPricesNearMeApp() {
     var locationSearchBar by rememberSaveable {
         mutableStateOf("")
     }
+
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -180,7 +197,8 @@ fun GasPricesNearMeApp() {
                         SettingsScreen(
                             onNavigateToSubmenu = {
                                 // Placeholder
-                            }
+                            },
+                            onSignOut = onSignOut
                         )
                     }
                 }
