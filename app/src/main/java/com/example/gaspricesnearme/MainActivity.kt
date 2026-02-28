@@ -91,7 +91,7 @@ enum class AuthState {
 fun RootApp() {
 
     //Change to false to test sign in
-    val testing = true
+    val testing = false
 
     //Checks if user is logged in already
     val initialState = if (testing) {

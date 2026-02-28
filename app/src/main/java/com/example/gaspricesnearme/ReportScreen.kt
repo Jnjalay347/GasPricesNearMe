@@ -41,6 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.material3.Button
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------
 // Report Screen 1-7
@@ -64,113 +69,198 @@ fun ReportScreen() {
         mutableStateOf("")
     }
 
+    val repo = remember { FirebaseRepository() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Price Report Form",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-        )
 
-        Text(
-            text = "Station Address",
-            fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        OutlinedTextField(
-            value = stationAddress,
-            onValueChange = { stationAddress = it},
-            placeholder = { Text("Defaults to closest station")},
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState)}
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp)
-        )
-
-        Text(
-            text = "Gas Station Prices",
-            fontSize =  16.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.width(60.dp))
-            Text("Standard", fontSize = 12.sp, modifier = Modifier.width(80.dp), textAlign = TextAlign.Center)
-            Text("Plus", fontSize = 12.sp, modifier = Modifier.width(80.dp), textAlign = TextAlign.Center)
-            Text("Premium", fontSize = 12.sp, modifier = Modifier.width(80.dp), textAlign = TextAlign.Center)
-        }
+            Text(
+                text = "Price Report Form",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Text("Cash", fontSize = 14.sp, modifier = Modifier.width(60.dp))
-            PriceTextField(cashStandard) { cashStandard = it}
-            PriceTextField(cashPlus) { cashPlus = it }
-            PriceTextField(cashPremium) { cashPremium = it }
-        }
+            Text(
+                text = "Station Address",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = stationAddress,
+                onValueChange = { stationAddress = it },
+                placeholder = { Text("Defaults to closest station") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp)
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Text("Credit", fontSize = 14.sp, modifier = Modifier.width(60.dp))
-            PriceTextField(creditStandard) { creditStandard = it}
-            PriceTextField(creditPlus) { creditPlus = it }
-            PriceTextField(creditPremium) { creditPremium = it }
-        }
+            Text(
+                text = "Gas Station Prices",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
 
-        Text(
-            text = "Rate This Station",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Spacer(modifier = Modifier.width(60.dp))
+                Text(
+                    "Standard",
+                    fontSize = 12.sp,
+                    modifier = Modifier.width(80.dp),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "Plus",
+                    fontSize = 12.sp,
+                    modifier = Modifier.width(80.dp),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "Premium",
+                    fontSize = 12.sp,
+                    modifier = Modifier.width(80.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            repeat(5) { index ->
-                IconButton(onClick = { selectedRating = index + 1}) {
-                    Icon(
-                        imageVector = Icons.Outlined.Star,
-                        contentDescription = "Star ${index + 1}",
-                        modifier = Modifier.size(40.dp),
-                        tint = if (index < selectedRating) Color.Yellow else Color.LightGray
-                    )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text("Cash", fontSize = 14.sp, modifier = Modifier.width(60.dp))
+                PriceTextField(cashStandard) { cashStandard = it }
+                PriceTextField(cashPlus) { cashPlus = it }
+                PriceTextField(cashPremium) { cashPremium = it }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text("Credit", fontSize = 14.sp, modifier = Modifier.width(60.dp))
+                PriceTextField(creditStandard) { creditStandard = it }
+                PriceTextField(creditPlus) { creditPlus = it }
+                PriceTextField(creditPremium) { creditPremium = it }
+            }
+
+            Text(
+                text = "Rate This Station",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(5) { index ->
+                    IconButton(onClick = { selectedRating = index + 1 }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Star,
+                            contentDescription = "Star ${index + 1}",
+                            modifier = Modifier.size(40.dp),
+                            tint = if (index < selectedRating) Color.Yellow else Color.LightGray
+                        )
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    //get prices in correct format
+                    val prices = listOf(
+                        cashStandard, cashPlus, cashPremium,
+                        creditStandard, creditPlus, creditPremium
+                    ).joinToString("`")
+
+                    if (stationAddress.isBlank()) {
+                        scope.launch { snackbarHostState.showSnackbar("Enter a station address") }
+                        return@Button
+                    }
+                    if (selectedRating !in 1..5) {
+                        scope.launch { snackbarHostState.showSnackbar("Select a rating (1-5)") }
+                        return@Button
+                    }
+
+                    //check for unfilled prices
+                    val anyBlank = listOf(
+                        cashStandard, cashPlus, cashPremium,
+                        creditStandard, creditPlus, creditPremium
+                    ).any { it.isBlank()}
+
+                    if (anyBlank) {
+                        scope.launch { snackbarHostState.showSnackbar("Fill in all 6 prices") }
+                        return@Button
+                    }
+
+                    //makes sure that prices are numbers
+                    val allNum = prices.split("`").all { it.toDoubleOrNull() != null }
+                    if (!allNum) {
+                        scope.launch { snackbarHostState.showSnackbar("Prices must be a number") }
+                        return@Button
+                    }
+
+
+                    repo.submitReport(
+                        address = stationAddress.trim(),
+                        prices = prices,
+                        rating = selectedRating,
+                        onOK = {
+                            scope.launch { snackbarHostState.showSnackbar("Report submitted") }
+
+                            //clear form
+                            stationAddress = ""
+                            cashStandard = ""; cashPlus = ""; cashPremium = ""
+                            creditStandard = ""; creditPlus = ""; creditPremium = ""
+                            selectedRating = 0
+                        },
+                        onError = {e ->
+                            scope.launch { snackbarHostState.showSnackbar("Error: ${e.message ?: "unknown"}") }
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Submit Report")
             }
         }
     }
-
 }
 
 @Composable
