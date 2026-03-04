@@ -16,4 +16,7 @@ interface StationDao {
 
     @Query("DELETE FROM stations")
     suspend fun clear()
+
+    @Query("SELECT * FROM stations WHERE coordinates = :coords LIMIT 1")
+    suspend fun getStation(coords: String): StationEntity?
 }

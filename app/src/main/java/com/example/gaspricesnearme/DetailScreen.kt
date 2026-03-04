@@ -143,6 +143,7 @@ fun DetailScreen(
 fun DetailScreenPreview() {
     // Mock data for preview
     val mockStation = GasStation(
+        coordinates = "0.0`0.0",
         name = "Shell",
         address = "123 Main St",
         price = "$4.50",
