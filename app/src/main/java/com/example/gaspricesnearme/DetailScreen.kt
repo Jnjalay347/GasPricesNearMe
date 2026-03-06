@@ -87,7 +87,7 @@ fun DetailScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${station.distance} away",
+                    text = if (station.distance.isBlank()) "Distance unavailable" else "${station.distance} away",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -129,7 +129,7 @@ fun DetailScreen(
 
         // 6. Rating Info
         Text(
-            text = "Rating: ${station.rating} ★★★★★",
+            text = "Rating: ${station.rating} ★",
             style = MaterialTheme.typography.bodyLarge
         )
 
@@ -143,7 +143,7 @@ fun DetailScreen(
 fun DetailScreenPreview() {
     // Mock data for preview
     val mockStation = GasStation(
-        coordinates = "0.0`0.0",
+        coordinates = "33.7451`-117.8670",
         name = "Shell",
         address = "123 Main St",
         price = "$4.50",
