@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -64,6 +65,10 @@ import com.google.android.gms.location.Priority
 import com.google.firebase.auth.FirebaseAuth
 import globus.glmap.GLMapView
 import globus.glmap.MapGeoPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +96,7 @@ enum class AuthState {
 fun RootApp() {
 
     //Change to false to test sign in
-    val testing = true
+    val testing = false
 
     //Checks if user is logged in already
     val initialState = if (testing) {
@@ -251,15 +256,43 @@ fun MapsScreen() {
     var selectedStation by remember { mutableStateOf<GasStation?>(null) }
 
     // Mock data for the cards (Updated with Distance and Rating)
-    val gasStations = remember {
-        listOf(
-            GasStation("Shell", "123 Main St", "$4.50", "0.2 mi", 4.5f),
-            GasStation("Chevron", "456 Market St", "$4.65", "0.5 mi", 3.8f),
-            GasStation("7-Eleven", "789 Mission St", "$4.45", "1.2 mi", 4.0f),
-            GasStation("Costco", "101 10th St", "$4.20", "2.5 mi", 4.8f),
-            GasStation("Arco", "202 Valencia St", "$4.35", "3.0 mi", 3.5f),
-            GasStation("Safeway", "303 Diamond St", "$4.55", "3.2 mi", 4.2f)
-        )
+//    val gasStations = remember {
+//        listOf(
+//            GasStation("Shell", "123 Main St", "$4.50", "0.2 mi", 4.5f),
+//            GasStation("Chevron", "456 Market St", "$4.65", "0.5 mi", 3.8f),
+//            GasStation("7-Eleven", "789 Mission St", "$4.45", "1.2 mi", 4.0f),
+//            GasStation("Costco", "101 10th St", "$4.20", "2.5 mi", 4.8f),
+//            GasStation("Arco", "202 Valencia St", "$4.35", "3.0 mi", 3.5f),
+//            GasStation("Safeway", "303 Diamond St", "$4.55", "3.2 mi", 4.2f)
+//        )
+//    }
+    var gasStations by remember {
+        mutableStateOf<List<GasStation>>(emptyList())
+    }
+
+    LaunchedEffect(Unit) {
+        val appDb = AppDatabase.getInstance(context)
+        val repo = StationsRepository()
+
+        withContext(Dispatchers.IO) {
+            repo.syncStationsToLocal(appDb)
+        }
+
+        val stations = withContext(Dispatchers.IO) {
+            appDb.stationDao().getAll()
+        }
+
+        gasStations = stations.map {
+            val price = it.prices.split("`").getOrNull(0) ?: "?"
+            GasStation(
+                coordinates = it.coordinates,
+                name = it.stationName,
+                address = it.address,
+                price = "$$price",
+                distance = "",
+                rating = it.rating.toFloat()
+            )
+        }
     }
 
     DisposableEffect(hasLocationPermission) {
@@ -325,7 +358,30 @@ fun MapsScreen() {
                         items(gasStations) { station ->
                             GasStationCard(
                                 station = station,
-                                onClick = { selectedStation = station } // Set selected station
+                                onClick = {
+
+                                    CoroutineScope(Dispatchers.IO).launch {
+
+                                        val dbStation = AppDatabase
+                                            .getInstance(context)
+                                            .stationDao()
+                                            .getStation(station.coordinates)
+
+                                        withContext(Dispatchers.Main) {
+                                            if (dbStation != null) {
+                                                val price = dbStation.prices.split("`").getOrNull(0) ?: "?"
+                                                selectedStation = GasStation(
+                                                    coordinates = dbStation.coordinates,
+                                                    name = dbStation.stationName,
+                                                    address = dbStation.address,
+                                                    price ="$$price",
+                                                    distance = "",
+                                                    rating = dbStation.rating.toFloat()
+                                                )
+                                            }
+                                        }
+                                    }
+                                } // Set selected station
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
@@ -357,12 +413,47 @@ fun MapsScreen() {
                                 assets = context.assets
                             )
 
-                            // Single Map pin (hard-coded, for now)
-                            pinMarker.addMapPin(
-                                37.7749,
-                                -122.4194,
-                                "pin.svg"
-                            )
+                            CoroutineScope(Dispatchers.IO).launch {
+
+                                val stations = AppDatabase
+                                    .getInstance(context)
+                                    .stationDao()
+                                    .getAll()
+
+                                withContext(Dispatchers.Main) {
+
+                                    val first = stations.firstOrNull()
+                                    if (first != null) {
+                                        val parts = first.coordinates.split("`")
+                                        val lat = parts.getOrNull(0)?.toDoubleOrNull()
+                                        val lon = parts.getOrNull(1)?.toDoubleOrNull()
+
+                                        if (lat != null && lon != null) {
+                                            renderer.mapGeoCenter = MapGeoPoint(lat, lon)
+                                            renderer.mapZoom = 12.0
+                                        }
+                                    }
+
+                                    stations.forEach { station ->
+
+                                        val parts = station.coordinates.split("`")
+
+                                        val lat = parts.getOrNull(0)?.toDoubleOrNull()
+                                        val lon = parts.getOrNull(1)?.toDoubleOrNull()
+
+                                        if (lat != null && lon != null) {
+                                            pinMarker.addMapPin(lat, lon, "pin.svg")
+                                        }
+                                    }
+                                }
+                            }
+
+//                            // Single Map pin (hard-coded, for now)
+//                            pinMarker.addMapPin(
+//                                37.7749,
+//                                -122.4194,
+//                                "pin.svg"
+//                            )
 
 //                            // Multiple Map pins (hard-coded, for now)
 //                            pinMarker.addMultipleMapPins(
@@ -416,6 +507,7 @@ fun GasStationCard(station: GasStation, onClick: () -> Unit) {
 
 // Data Class for Gas Stations
 data class GasStation(
+    val coordinates: String,
     val name: String,
     val address: String,
     val price: String,
