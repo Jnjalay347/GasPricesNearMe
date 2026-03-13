@@ -1,7 +1,11 @@
 package com.example.gaspricesnearme
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import androidx.activity.ComponentActivity
@@ -73,11 +77,30 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // TASK 6-2: Initialize the notification channel when the app starts
+        createNotificationChannel()
+
         enableEdgeToEdge()
         setContent {
             GasPricesNearMeTheme {
                 RootApp()
             }
+        }
+    }
+
+    // TASK 6-2: Create the Notification Channel
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Price Report Prompts"
+            val descriptionText = "Reminders to report gas prices when you are at a station"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("GEOFENCE_CHANNEL_ID", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }
@@ -234,16 +257,51 @@ fun MapsScreen() {
         )
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasLocationPermission = isGranted
+    // TASK 6-1: Background Location Permission State
+    var hasBackgroundLocationPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true // Background location implicitly granted below Android 10
+            }
+        )
     }
 
-    LaunchedEffect(Unit) {
-        if (!hasLocationPermission) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    // TASK 6-2: Notification Permission State
+    var hasNotificationPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true // Implicitly granted below Android 13
+            }
+        )
+    }
+
+    // TASK 6-1 & 6-2: Updated Launcher for Multiple Permissions
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: hasLocationPermission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            hasBackgroundLocationPermission = permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] ?: hasBackgroundLocationPermission
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hasNotificationPermission = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: hasNotificationPermission
+        }
+    }
+
+    // TASK 6-1 & 6-2: Requesting all necessary permissions
+    LaunchedEffect(Unit) {
+        val permissionsToRequest = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        permissionLauncher.launch(permissionsToRequest.toTypedArray())
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -254,6 +312,9 @@ fun MapsScreen() {
 
     // Track currently selected station. Null = Show List; Not Null = Show Details
     var selectedStation by remember { mutableStateOf<GasStation?>(null) }
+
+    // TASK 6-1: Store database entities for geofencing
+    var dbStations by remember { mutableStateOf<List<StationEntity>>(emptyList()) }
 
     // Mock data for the cards (Updated with Distance and Rating)
 //    val gasStations = remember {
@@ -282,6 +343,8 @@ fun MapsScreen() {
             appDb.stationDao().getAll()
         }
 
+        dbStations = stations // TASK 6-1: Save to local state for Geofences
+
         gasStations = stations.map {
             val price = it.prices.split("`").getOrNull(0) ?: "?"
             GasStation(
@@ -292,6 +355,14 @@ fun MapsScreen() {
                 distance = "",
                 rating = it.rating.toFloat()
             )
+        }
+    }
+
+    // TASK 6-1: Setup Geofences automatically when data and permissions are ready
+    LaunchedEffect(dbStations, hasBackgroundLocationPermission) {
+        if (dbStations.isNotEmpty() && hasBackgroundLocationPermission) {
+            val geofenceHelper = GeofenceHelper(context)
+            geofenceHelper.setupGeofences(dbStations)
         }
     }
 
@@ -309,7 +380,7 @@ fun MapsScreen() {
                 Priority.PRIORITY_HIGH_ACCURACY,
                 1000
             ).build()
-            
+
             try {
                 fusedLocationClient.requestLocationUpdates(
                     locationRequest,
