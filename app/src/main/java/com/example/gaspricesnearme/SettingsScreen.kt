@@ -24,7 +24,9 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsScreen(
     onNavigateToSubmenu: () -> Unit,
-    onSignOut: () -> Unit = {}
+    onSignOut: () -> Unit = {},
+    darkModeEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -156,7 +158,7 @@ fun SettingsScreen(
         )
 
         // Dark Mode Toggle
-        var darkModeEnabled by remember { mutableStateOf(false) }
+        // var darkModeEnabled by remember { mutableStateOf(false) }
 
         SettingRow(
             title = "Dark Mode",
@@ -164,7 +166,7 @@ fun SettingsScreen(
             control = {
                 Switch(
                     checked = darkModeEnabled,
-                    onCheckedChange = { darkModeEnabled = it }
+                    onCheckedChange = { onToggleDarkMode(it) }
                 )
             }
         )
@@ -214,6 +216,9 @@ fun SettingRow(
 @Composable
 fun SettingsScreenPreview() {
     SettingsScreen(
-        onNavigateToSubmenu = {}
+        onNavigateToSubmenu = {},
+        onSignOut = {},
+        darkModeEnabled = false,
+        onToggleDarkMode = {}
     )
 }

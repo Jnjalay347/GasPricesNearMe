@@ -83,8 +83,15 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            GasPricesNearMeTheme {
-                RootApp()
+            var darkModeEnabled by rememberSaveable { mutableStateOf(false) }
+
+            GasPricesNearMeTheme(
+                darkTheme = darkModeEnabled
+            ) {
+                RootApp(
+                    darkModeEnabled = darkModeEnabled,
+                    onToggleDarkMode = { darkModeEnabled = it }
+                )
             }
         }
     }
@@ -116,7 +123,10 @@ enum class AuthState {
 }
 
 @Composable
-fun RootApp() {
+fun RootApp(
+    darkModeEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit
+) {
 
     //Change to false to test sign in
     val testing = false
@@ -149,7 +159,10 @@ fun RootApp() {
             )
         }
         AuthState.LOGGED_IN -> {
-            GasPricesNearMeApp(onSignOut = {currentAuthState = AuthState.SIGN_IN})
+            GasPricesNearMeApp(
+                onSignOut = {currentAuthState = AuthState.SIGN_IN},
+                darkModeEnabled = darkModeEnabled,
+                onToggleDarkMode = onToggleDarkMode)
         }
     }
 }
@@ -161,7 +174,10 @@ fun RootApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @PreviewScreenSizes
 @Composable
-fun GasPricesNearMeApp(onSignOut: () -> Unit = {}) {
+fun GasPricesNearMeApp(
+    onSignOut: () -> Unit = {},
+    darkModeEnabled: Boolean = false,
+    onToggleDarkMode: (Boolean) -> Unit = {}) {
     var currentDestination by rememberSaveable {
         mutableStateOf(AppDestinations.HOME)
     }
@@ -226,7 +242,9 @@ fun GasPricesNearMeApp(onSignOut: () -> Unit = {}) {
                             onNavigateToSubmenu = {
                                 // Placeholder
                             },
-                            onSignOut = onSignOut
+                            onSignOut = onSignOut,
+                            darkModeEnabled = darkModeEnabled,
+                            onToggleDarkMode = onToggleDarkMode
                         )
                     }
                 }
