@@ -73,6 +73,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.foundation.layout.Arrangement
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -479,6 +483,19 @@ fun MapsScreen() {
             }
         }
     ) { innerPadding ->
+        // Adjusts Zoom in/Zoom out values for the Floating Action Button
+        val rendererState = remember { mutableStateOf<GLMapView?>(null) }
+        fun zoomIn() {
+            rendererState.value?.renderer?.let {
+                it.mapZoom += 0.5
+            }
+        }
+        fun zoomOut() {
+            rendererState.value?.renderer?.let {
+                it.mapZoom -= 0.5
+            }
+        }
+
         // Main Map Background
         Box(
             modifier = Modifier
@@ -493,6 +510,9 @@ fun MapsScreen() {
                     GLMapView(context).apply {
                         // Postpone setting renderer properties until it's initialized
                         post {
+                            // Maintains Zoom in/Zoom out value
+                            rendererState.value = this
+
                             renderer.mapGeoCenter = MapGeoPoint(37.7749, -122.4194)
                             renderer.mapZoom = 10.0
                             locationHelper = CurLocationHelper(renderer)
@@ -536,28 +556,30 @@ fun MapsScreen() {
                                     }
                                 }
                             }
-
-//                            // Single Map pin (hard-coded, for now)
-//                            pinMarker.addMapPin(
-//                                37.7749,
-//                                -122.4194,
-//                                "pin.svg"
-//                            )
-
-//                            // Multiple Map pins (hard-coded, for now)
-//                            pinMarker.addMultipleMapPins(
-//                                listOf(
-//                                    37.8199 to -122.4783,
-//                                    37.8267 to -122.4230,
-//                                    37.8080 to -122.4177,
-//                                    37.8021 to -122.4187
-//                                ),
-//                                "pin.svg"
-//                            )
                         }
                     }
                 }
             )
+            // Zoom in/Zoom out Floating Action Buttons for Map
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                FloatingActionButton(
+                    onClick = { zoomIn() }
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Zoom In")
+                }
+
+                FloatingActionButton(
+                    onClick = { zoomOut() }
+                ) {
+                    Icon(Icons.Default.Remove, contentDescription = "Zoom Out")
+                }
+            }
         }
     }
 }
