@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.GasPricesNearMe" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.GasPricesNearMe" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Uses gpnm_background.xml to set background color for splash screen. -->
+        <item name="android:windowBackground">@color/gpnm_background</item>
+    </style>
+
 </resources>

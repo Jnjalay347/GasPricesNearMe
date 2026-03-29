@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Solid light blue color. Used for App Icon/Splash Screen background. -->
+    <color name="gpnm_background">#00C4FF</color>
+
+</resources>
