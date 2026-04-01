@@ -157,6 +157,32 @@ fun SettingsScreen(
             color = Color.Gray
         )
 
+        // Text Field Setting
+        Text(
+            text = "Set Current Location",
+            fontWeight = FontWeight.SemiBold
+        )
+
+        // Extra Space, if needed
+        // Spacer(modifier = Modifier.height(1.dp))
+
+        var locationName by remember { mutableStateOf("") }
+
+        OutlinedTextField(
+            value = locationName,
+            onValueChange = { locationName = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Type your current location/address.") },
+            singleLine = true
+        )
+
+        // Divider
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 15.dp),
+            thickness = 1.dp,
+            color = Color.Gray
+        )
+
         // Dark Mode Toggle
         // var darkModeEnabled by remember { mutableStateOf(false) }
 
