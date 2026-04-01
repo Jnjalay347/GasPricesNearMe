@@ -78,6 +78,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.foundation.layout.Arrangement
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gaspricesnearme.viewmodel.SettingsViewModel
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -182,6 +185,8 @@ fun GasPricesNearMeApp(
     onSignOut: () -> Unit = {},
     darkModeEnabled: Boolean = false,
     onToggleDarkMode: (Boolean) -> Unit = {}) {
+    val settingsViewModel: SettingsViewModel = viewModel()
+
     var currentDestination by rememberSaveable {
         mutableStateOf(AppDestinations.HOME)
     }
@@ -243,6 +248,7 @@ fun GasPricesNearMeApp(
                     AppDestinations.USER_REPORT -> ReportScreen()
                     AppDestinations.SETTINGS -> {
                         SettingsScreen(
+                            settingsViewModel = settingsViewModel,
                             onNavigateToSubmenu = {
                                 // Placeholder
                             },

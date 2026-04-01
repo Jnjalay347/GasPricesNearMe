@@ -96,6 +96,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // Datastore
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
 }
 
 configurations.all {
