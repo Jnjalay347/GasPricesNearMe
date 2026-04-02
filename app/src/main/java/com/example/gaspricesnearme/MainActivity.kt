@@ -80,6 +80,7 @@ import androidx.compose.foundation.layout.Arrangement
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gaspricesnearme.viewmodel.SettingsViewModel
+import androidx.compose.ui.platform.LocalInspectionMode
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -185,7 +186,10 @@ fun GasPricesNearMeApp(
     onSignOut: () -> Unit = {},
     darkModeEnabled: Boolean = false,
     onToggleDarkMode: (Boolean) -> Unit = {}) {
-    val settingsViewModel: SettingsViewModel = viewModel()
+
+    val settingsViewModel: SettingsViewModel? =
+        // Avoids instantiating ViewModel, during Preview
+        if (LocalInspectionMode.current) null else viewModel()
 
     var currentDestination by rememberSaveable {
         mutableStateOf(AppDestinations.HOME)
@@ -247,15 +251,20 @@ fun GasPricesNearMeApp(
                     AppDestinations.HOME -> MapsScreen()
                     AppDestinations.USER_REPORT -> ReportScreen()
                     AppDestinations.SETTINGS -> {
-                        SettingsScreen(
-                            settingsViewModel = settingsViewModel,
-                            onNavigateToSubmenu = {
-                                // Placeholder
-                            },
-                            onSignOut = onSignOut,
-                            darkModeEnabled = darkModeEnabled,
-                            onToggleDarkMode = onToggleDarkMode
-                        )
+                        if (settingsViewModel != null) {
+                            SettingsScreen(
+                                settingsViewModel = settingsViewModel,
+                                onNavigateToSubmenu = {
+                                    // Placeholder
+                                },
+                                onSignOut = onSignOut,
+                                darkModeEnabled = darkModeEnabled,
+                                onToggleDarkMode = onToggleDarkMode
+                            )
+                        } else {
+                            // Renders a placeholder/stateless preview version
+                            SettingsScreenPreview()
+                        }
                     }
                 }
             }

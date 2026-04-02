@@ -3,18 +3,33 @@ package com.example.gaspricesnearme.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gaspricesnearme.model.GasStation
+import com.example.gaspricesnearme.repository.GasStationRepository
 import com.example.gaspricesnearme.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Manages UI state and user's interaction related to...
+ * settings, gas station searches, favorite gas station, etc.
+ * on the Settings Screen.
+ */
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SettingsRepository(application)
 
     private val _searchRadius = MutableStateFlow(5f)
     val searchRadius: StateFlow<Float> = _searchRadius.asStateFlow()
+
+    private val gasStationRepository = GasStationRepository()
+
+    private val _searchResults = MutableStateFlow<List<GasStation>>(emptyList())
+    val searchResults: StateFlow<List<GasStation>> = _searchResults
+
+    private val _favoriteStation = MutableStateFlow<GasStation?>(null)
+    val favoriteStation: StateFlow<GasStation?> = _favoriteStation
 
     init {
         viewModelScope.launch {
@@ -28,6 +43,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _searchRadius.value = radius
         viewModelScope.launch {
             repository.saveSearchRadius(radius)
+        }
+    }
+
+    fun searchStations(query: String) {
+        viewModelScope.launch {
+            val results = gasStationRepository.searchStations(query)
+            _searchResults.value = results
+        }
+    }
+
+    fun saveFavoriteStation(userId: String, station: GasStation) {
+        viewModelScope.launch {
+            gasStationRepository.saveFavoriteStation(userId, station)
+            _favoriteStation.value = station
         }
     }
 }
