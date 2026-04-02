@@ -7,6 +7,7 @@ import com.example.gaspricesnearme.data.settingsDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+// Manages User preferences set for Search Radius slider, in Settings screen
 class SettingsRepository(private val context: Context) {
 
     val searchRadiusFlow: Flow<Float> =

@@ -1,5 +1,6 @@
 package com.example.gaspricesnearme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -20,16 +21,66 @@ import kotlin.math.roundToInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gaspricesnearme.viewmodel.SettingsViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.window.PopupProperties
+import com.example.gaspricesnearme.model.GasStation as GasStationModel
 
 // ---------------------------------------------------------
 // Settings Screen 1-6
 // ---------------------------------------------------------
 
+/**
+ * Stateful version of the Settings Screen that interacts with the [SettingsViewModel].
+ */
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     onNavigateToSubmenu: () -> Unit,
     onSignOut: () -> Unit = {},
+    darkModeEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit
+) {
+    // Collect state from ViewModel to pass down to the stateless content
+    val searchRadius by settingsViewModel.searchRadius.collectAsState()
+    val searchResults by settingsViewModel.searchResults.collectAsState()
+    val favoriteStation by settingsViewModel.favoriteStation.collectAsState()
+
+    SettingsScreenContent(
+        searchRadius = searchRadius,
+        onSearchRadiusChange = { settingsViewModel.updateSearchRadius(it) },
+        searchResults = searchResults,
+        favoriteStation = favoriteStation,
+        onSearchStations = { settingsViewModel.searchStations(it) },
+        onSaveFavoriteStation = { station ->
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            if (userId != null) {
+                settingsViewModel.saveFavoriteStation(userId, station)
+            }
+        },
+        onNavigateToSubmenu = onNavigateToSubmenu,
+        onSignOut = {
+            FirebaseAuth.getInstance().signOut()
+            onSignOut()
+        },
+        darkModeEnabled = darkModeEnabled,
+        onToggleDarkMode = onToggleDarkMode
+    )
+}
+
+/**
+ * Stateless version of the Settings Screen, for previews/testing.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenContent(
+    searchRadius: Float,
+    onSearchRadiusChange: (Float) -> Unit,
+    searchResults: List<GasStationModel>,
+    favoriteStation: GasStationModel?,
+    onSearchStations: (String) -> Unit,
+    onSaveFavoriteStation: (GasStationModel) -> Unit,
+    onNavigateToSubmenu: () -> Unit,
+    onSignOut: () -> Unit,
     darkModeEnabled: Boolean,
     onToggleDarkMode: (Boolean) -> Unit
 ) {
@@ -54,7 +105,6 @@ fun SettingsScreen(
         )
 
         // Search Radius Slider
-        val searchRadius by settingsViewModel.searchRadius.collectAsState()
         val searchRadiusRounded = searchRadius.roundToInt()
 
         Text(
@@ -67,7 +117,7 @@ fun SettingsScreen(
             onValueChange = { value ->
                 val roundToNearestFive = ((value / 5f).roundToInt() * 5f)
                 val minValOneOrHigher = roundToNearestFive.coerceAtLeast(1f)
-                settingsViewModel.updateSearchRadius(minValOneOrHigher)
+                onSearchRadiusChange(minValOneOrHigher)
             },
             valueRange = 1f..30f,
             steps = 5
@@ -141,18 +191,88 @@ fun SettingsScreen(
             fontWeight = FontWeight.SemiBold
         )
 
-        // Extra Space, if needed
-        // Spacer(modifier = Modifier.height(1.dp))
+        var searchQuery by remember { mutableStateOf("") }
+        var isDropdownExpanded by remember { mutableStateOf(false) }
 
-        var nickname by remember { mutableStateOf("") }
+        // Trigger expansion when search results are available and query changes
+        LaunchedEffect(searchResults) {
+            isDropdownExpanded = searchResults.isNotEmpty()
+        }
 
-        OutlinedTextField(
-            value = nickname,
-            onValueChange = { nickname = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("e.g. ARCO, Shell on Harbor Blvd.") },
-            singleLine = true
-        )
+        // Trigger search when query changes
+        LaunchedEffect(searchQuery) {
+            if (searchQuery.isNotBlank()) {
+                onSearchStations(searchQuery)
+                isDropdownExpanded = true
+            } else {
+                isDropdownExpanded = false
+            }
+        }
+
+        Box {
+            OutlinedTextField(
+                value = searchQuery,
+                // Actively searches and matches query to gas station, during typing
+                onValueChange = {
+                    searchQuery = it
+                    onSearchStations(it)
+                },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeholder = { Text("Search gas stations...") },
+                singleLine = true
+            )
+
+            // Drop-down menu for Gas Stations
+            DropdownMenu(
+                expanded = isDropdownExpanded,
+                onDismissRequest = { isDropdownExpanded = false },
+                properties = PopupProperties(focusable = false),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .heightIn(max = 240.dp) // Show only a few items at once
+            ) {
+                if (searchResults.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("No stations found.") },
+                        onClick = { }
+                    )
+                } else {
+                    searchResults.forEach { station ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(station.stationName)
+                                    Text(
+                                        station.address,
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onSaveFavoriteStation(station)
+                                searchQuery = station.stationName
+                                isDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Shows selected favorite Gas Station
+        favoriteStation?.let { station ->
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Favorite Station:",
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Text(station.stationName)
+            Text(station.address, color = Color.Gray)
+        }
 
         // Divider
         HorizontalDivider(
@@ -166,9 +286,6 @@ fun SettingsScreen(
             text = "Set Current Location",
             fontWeight = FontWeight.SemiBold
         )
-
-        // Extra Space, if needed
-        // Spacer(modifier = Modifier.height(1.dp))
 
         var locationName by remember { mutableStateOf("") }
 
@@ -188,8 +305,6 @@ fun SettingsScreen(
         )
 
         // Dark Mode Toggle
-        // var darkModeEnabled by remember { mutableStateOf(false) }
-
         SettingRow(
             title = "Dark Mode",
             description = "Swaps to dark theme for the app",
@@ -211,7 +326,6 @@ fun SettingsScreen(
         // Sign out Button
         Button(
             onClick = {
-                FirebaseAuth.getInstance().signOut()
                 onSignOut()
             },
             modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -245,10 +359,14 @@ fun SettingRow(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
-    val dummyViewModel: SettingsViewModel = viewModel()
-
-    SettingsScreen(
-        settingsViewModel = dummyViewModel,
+    // Uses stateless version to avoid ViewModel instantiation issues
+    SettingsScreenContent(
+        searchRadius = 10f,
+        onSearchRadiusChange = {},
+        searchResults = emptyList(),
+        favoriteStation = null,
+        onSearchStations = {},
+        onSaveFavoriteStation = {},
         onNavigateToSubmenu = {},
         onSignOut = {},
         darkModeEnabled = false,
