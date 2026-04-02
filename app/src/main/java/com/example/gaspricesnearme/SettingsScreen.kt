@@ -17,12 +17,17 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.math.roundToInt
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gaspricesnearme.viewmodel.SettingsViewModel
+import androidx.compose.runtime.collectAsState
+
 // ---------------------------------------------------------
 // Settings Screen 1-6
 // ---------------------------------------------------------
 
 @Composable
 fun SettingsScreen(
+    settingsViewModel: SettingsViewModel,
     onNavigateToSubmenu: () -> Unit,
     onSignOut: () -> Unit = {},
     darkModeEnabled: Boolean,
@@ -49,7 +54,7 @@ fun SettingsScreen(
         )
 
         // Search Radius Slider
-        var searchRadius by remember { mutableFloatStateOf(5f) }
+        val searchRadius by settingsViewModel.searchRadius.collectAsState()
         val searchRadiusRounded = searchRadius.roundToInt()
 
         Text(
@@ -59,11 +64,10 @@ fun SettingsScreen(
 
         Slider(
             value = searchRadius,
-            onValueChange = {
-                value ->
+            onValueChange = { value ->
                 val roundToNearestFive = ((value / 5f).roundToInt() * 5f)
                 val minValOneOrHigher = roundToNearestFive.coerceAtLeast(1f)
-                searchRadius = minValOneOrHigher
+                settingsViewModel.updateSearchRadius(minValOneOrHigher)
             },
             valueRange = 1f..30f,
             steps = 5
@@ -241,7 +245,10 @@ fun SettingRow(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
+    val dummyViewModel: SettingsViewModel = viewModel()
+
     SettingsScreen(
+        settingsViewModel = dummyViewModel,
         onNavigateToSubmenu = {},
         onSignOut = {},
         darkModeEnabled = false,
