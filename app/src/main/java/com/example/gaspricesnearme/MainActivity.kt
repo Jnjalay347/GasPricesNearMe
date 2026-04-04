@@ -76,11 +76,16 @@ import kotlinx.coroutines.withContext
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.layout.Arrangement
+import android.location.Geocoder
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gaspricesnearme.viewmodel.SettingsViewModel
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.runtime.collectAsState
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -248,7 +253,13 @@ fun GasPricesNearMeApp(
                 contentAlignment = Alignment.Center
             ) {
                 when (currentDestination) {
-                    AppDestinations.HOME -> MapsScreen()
+                    AppDestinations.HOME -> {
+                        if (settingsViewModel != null) {
+                            MapsScreen(settingsViewModel)
+                        } else {
+                            MapsScreenPreview()
+                        }
+                    }
                     AppDestinations.USER_REPORT -> ReportScreen()
                     AppDestinations.SETTINGS -> {
                         if (settingsViewModel != null) {
@@ -279,10 +290,15 @@ fun GasPricesNearMeApp(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapsScreen() {
+fun MapsScreen(settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var locationHelper by remember { mutableStateOf<CurLocationHelper?>(null) }
+
+    // Collect settings from ViewModel
+    val searchRadius by settingsViewModel.searchRadius.collectAsState()
+    val favoriteStation by settingsViewModel.favoriteStation.collectAsState()
+    val currentLocationStr by settingsViewModel.currentLocation.collectAsState()
 
     // Permission state
     var hasLocationPermission by remember {
@@ -353,17 +369,6 @@ fun MapsScreen() {
     // TASK 6-1: Store database entities for geofencing
     var dbStations by remember { mutableStateOf<List<StationEntity>>(emptyList()) }
 
-    // Mock data for the cards (Updated with Distance and Rating)
-//    val gasStations = remember {
-//        listOf(
-//            GasStation("Shell", "123 Main St", "$4.50", "0.2 mi", 4.5f),
-//            GasStation("Chevron", "456 Market St", "$4.65", "0.5 mi", 3.8f),
-//            GasStation("7-Eleven", "789 Mission St", "$4.45", "1.2 mi", 4.0f),
-//            GasStation("Costco", "101 10th St", "$4.20", "2.5 mi", 4.8f),
-//            GasStation("Arco", "202 Valencia St", "$4.35", "3.0 mi", 3.5f),
-//            GasStation("Safeway", "303 Diamond St", "$4.55", "3.2 mi", 4.2f)
-//        )
-//    }
     var gasStations by remember {
         mutableStateOf<List<GasStation>>(emptyList())
     }
@@ -511,6 +516,52 @@ fun MapsScreen() {
             }
         }
 
+        // Toggles between Favorite and Current Location
+        var isFavoriteToggled by remember { mutableStateOf(false) }
+
+        // Helper function to calculate zoom level from radius (miles)
+        // Approx: 15 miles ~ 10.0 zoom, 5 miles ~ 12.0 zoom, 1 mile ~ 14.5 zoom
+        fun getZoomFromRadius(radius: Float): Double {
+            return when {
+                radius <= 1f -> 14.5
+                radius <= 5f -> 12.5
+                radius <= 10f -> 11.5
+                radius <= 20f -> 10.5
+                else -> 9.5
+            }
+        }
+
+        fun centerOnFavorite() {
+            favoriteStation?.let { station ->
+                rendererState.value?.renderer?.let { renderer ->
+                    renderer.mapGeoCenter = MapGeoPoint(station.latitude, station.longitude)
+                    renderer.mapZoom = getZoomFromRadius(searchRadius)
+                }
+            }
+        }
+
+        fun centerOnCurrentLocation() {
+            currentLocationStr?.let { address ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val geocoder = Geocoder(context, Locale.getDefault())
+                        val addresses = geocoder.getFromLocationName(address, 1)
+                        if (addresses?.isNotEmpty() == true) {
+                            val addr = addresses[0]
+                            withContext(Dispatchers.Main) {
+                                rendererState.value?.renderer?.let { renderer ->
+                                    renderer.mapGeoCenter = MapGeoPoint(addr.latitude, addr.longitude)
+                                    renderer.mapZoom = getZoomFromRadius(searchRadius)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Handle Geocoding error
+                    }
+                }
+            }
+        }
+
         // Main Map Background
         Box(
             modifier = Modifier
@@ -583,6 +634,24 @@ fun MapsScreen() {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
+                // Location/Favorite Toggle Button
+                FloatingActionButton(
+                    onClick = {
+                        isFavoriteToggled = !isFavoriteToggled
+                        if (isFavoriteToggled) {
+                            centerOnFavorite()
+                        } else {
+                            centerOnCurrentLocation()
+                        }
+                    },
+                    containerColor = if (isFavoriteToggled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Icon(
+                        imageVector = if (isFavoriteToggled) Icons.Default.Star else Icons.Default.MyLocation,
+                        contentDescription = "Toggle Location/Favorite"
+                    )
+                }
+
                 FloatingActionButton(
                     onClick = { zoomIn() }
                 ) {
@@ -597,6 +666,12 @@ fun MapsScreen() {
             }
         }
     }
+}
+
+@Composable
+fun MapsScreenPreview() {
+    // Basic placeholder for previewing maps screen structure
+    Text("Map Screen Preview")
 }
 
 @Composable

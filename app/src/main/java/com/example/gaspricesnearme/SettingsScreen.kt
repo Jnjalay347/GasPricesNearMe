@@ -48,6 +48,15 @@ fun SettingsScreen(
     val favoriteStation by settingsViewModel.favoriteStation.collectAsState()
     val currentLocation by settingsViewModel.currentLocation.collectAsState()
 
+    val userId = remember { FirebaseAuth.getInstance().currentUser?.uid }
+
+    // Loads favorite Gas Station from Firestore, when the screen is first loaded
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            settingsViewModel.fetchFavoriteStation(userId)
+        }
+    }
+
     SettingsScreenContent(
         searchRadius = searchRadius,
         onSearchRadiusChange = { settingsViewModel.updateSearchRadius(it) },
@@ -58,7 +67,6 @@ fun SettingsScreen(
         onClearCurrentLocation = { settingsViewModel.clearCurrentLocation() },
         onSearchStations = { settingsViewModel.searchStations(it) },
         onSaveFavoriteStation = { station ->
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
             if (userId != null) {
                 settingsViewModel.saveFavoriteStation(userId, station)
             }
