@@ -19,14 +19,13 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SettingsRepository(application)
+    private val gasStationRepository = GasStationRepository()
 
     private val _searchRadius = MutableStateFlow(5f)
     val searchRadius: StateFlow<Float> = _searchRadius.asStateFlow()
 
     private val _currentLocation = MutableStateFlow<String?>(null)
     val currentLocation: StateFlow<String?> = _currentLocation.asStateFlow()
-
-    private val gasStationRepository = GasStationRepository()
 
     private val _searchResults = MutableStateFlow<List<GasStation>>(emptyList())
     val searchResults: StateFlow<List<GasStation>> = _searchResults
@@ -70,6 +69,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val results = gasStationRepository.searchStations(query)
             _searchResults.value = results
+        }
+    }
+
+    fun fetchFavoriteStation(userId: String) {
+        viewModelScope.launch {
+            val station = gasStationRepository.getFavoriteStation(userId)
+            _favoriteStation.value = station
         }
     }
 
