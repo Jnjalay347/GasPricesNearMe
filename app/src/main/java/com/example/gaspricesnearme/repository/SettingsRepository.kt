@@ -20,4 +20,21 @@ class SettingsRepository(private val context: Context) {
             preferences[SettingsKeys.SEARCH_RADIUS] = radius
         }
     }
+
+    val currentLocationFlow: Flow<String?> =
+        context.settingsDataStore.data.map { preferences ->
+            preferences[SettingsKeys.CURRENT_LOCATION]
+        }
+
+    suspend fun saveCurrentLocation(location: String) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[SettingsKeys.CURRENT_LOCATION] = location
+        }
+    }
+
+    suspend fun clearCurrentLocation() {
+        context.settingsDataStore.edit { preferences ->
+            preferences.remove(SettingsKeys.CURRENT_LOCATION)
+        }
+    }
 }

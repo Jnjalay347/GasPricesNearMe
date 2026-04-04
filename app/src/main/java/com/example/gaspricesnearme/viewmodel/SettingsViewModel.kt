@@ -23,6 +23,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _searchRadius = MutableStateFlow(5f)
     val searchRadius: StateFlow<Float> = _searchRadius.asStateFlow()
 
+    private val _currentLocation = MutableStateFlow<String?>(null)
+    val currentLocation: StateFlow<String?> = _currentLocation.asStateFlow()
+
     private val gasStationRepository = GasStationRepository()
 
     private val _searchResults = MutableStateFlow<List<GasStation>>(emptyList())
@@ -37,12 +40,29 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _searchRadius.value = it
             }
         }
+        viewModelScope.launch {
+            repository.currentLocationFlow.collect {
+                _currentLocation.value = it
+            }
+        }
     }
 
     fun updateSearchRadius(radius: Float) {
         _searchRadius.value = radius
         viewModelScope.launch {
             repository.saveSearchRadius(radius)
+        }
+    }
+
+    fun updateCurrentLocation(location: String) {
+        viewModelScope.launch {
+            repository.saveCurrentLocation(location)
+        }
+    }
+
+    fun clearCurrentLocation() {
+        viewModelScope.launch {
+            repository.clearCurrentLocation()
         }
     }
 

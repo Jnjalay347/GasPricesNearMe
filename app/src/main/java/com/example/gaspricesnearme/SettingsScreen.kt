@@ -3,6 +3,8 @@ package com.example.gaspricesnearme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -44,12 +46,16 @@ fun SettingsScreen(
     val searchRadius by settingsViewModel.searchRadius.collectAsState()
     val searchResults by settingsViewModel.searchResults.collectAsState()
     val favoriteStation by settingsViewModel.favoriteStation.collectAsState()
+    val currentLocation by settingsViewModel.currentLocation.collectAsState()
 
     SettingsScreenContent(
         searchRadius = searchRadius,
         onSearchRadiusChange = { settingsViewModel.updateSearchRadius(it) },
         searchResults = searchResults,
         favoriteStation = favoriteStation,
+        currentLocation = currentLocation,
+        onUpdateCurrentLocation = { settingsViewModel.updateCurrentLocation(it) },
+        onClearCurrentLocation = { settingsViewModel.clearCurrentLocation() },
         onSearchStations = { settingsViewModel.searchStations(it) },
         onSaveFavoriteStation = { station ->
             val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -77,6 +83,9 @@ fun SettingsScreenContent(
     onSearchRadiusChange: (Float) -> Unit,
     searchResults: List<GasStationModel>,
     favoriteStation: GasStationModel?,
+    currentLocation: String?,
+    onUpdateCurrentLocation: (String) -> Unit,
+    onClearCurrentLocation: () -> Unit,
     onSearchStations: (String) -> Unit,
     onSaveFavoriteStation: (GasStationModel) -> Unit,
     onNavigateToSubmenu: () -> Unit,
@@ -294,8 +303,48 @@ fun SettingsScreenContent(
             onValueChange = { locationName = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Type your current location/address.") },
-            singleLine = true
+            singleLine = true,
+            trailingIcon = {
+                if (locationName.isNotBlank()) {
+                    Button(
+                        onClick = {
+                            onUpdateCurrentLocation(locationName)
+                            locationName = ""
+                        },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
         )
+
+        // Shows saved current location
+        currentLocation?.let { location ->
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Saved Location:",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                    Text(text = location, color = Color.Gray)
+                }
+                IconButton(onClick = onClearCurrentLocation) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear location",
+                        tint = Color.Red
+                    )
+                }
+            }
+        }
 
         // Divider
         HorizontalDivider(
@@ -365,6 +414,9 @@ fun SettingsScreenPreview() {
         onSearchRadiusChange = {},
         searchResults = emptyList(),
         favoriteStation = null,
+        currentLocation = "123 Main St, Springfield",
+        onUpdateCurrentLocation = {},
+        onClearCurrentLocation = {},
         onSearchStations = {},
         onSaveFavoriteStation = {},
         onNavigateToSubmenu = {},
