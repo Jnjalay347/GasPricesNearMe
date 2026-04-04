@@ -13,7 +13,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,19 +23,30 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -46,6 +59,7 @@ import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,14 +67,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gaspricesnearme.model.GasStation as GasStationModel
 import com.example.gaspricesnearme.ui.theme.GasPricesNearMeTheme
+import com.example.gaspricesnearme.viewmodel.SettingsViewModel
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -73,19 +93,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.foundation.layout.Arrangement
-import android.location.Geocoder
-
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.gaspricesnearme.viewmodel.SettingsViewModel
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.runtime.collectAsState
 import java.util.Locale
+import android.location.Geocoder
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,9 +209,23 @@ fun GasPricesNearMeApp(
         mutableStateOf(AppDestinations.HOME)
     }
 
-    var locationSearchBar by rememberSaveable {
-        mutableStateOf("")
+
+    // Map Search Bar States
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+    
+    val searchResults by settingsViewModel?.searchResults?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+    val favoriteStation by settingsViewModel?.favoriteStation?.collectAsState() ?: remember { mutableStateOf(null) }
+
+    val userId = remember { FirebaseAuth.getInstance().currentUser?.uid }
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            settingsViewModel?.fetchFavoriteStation(userId)
+        }
     }
+
+    // Map centering request: Triple(Type, Data, Timestamp)
+    var mapActionTrigger by remember { mutableStateOf<Triple<String, Any?, Long>?>(null) }
 
 
     NavigationSuiteScaffold(
@@ -228,19 +251,100 @@ fun GasPricesNearMeApp(
                 if (currentDestination == AppDestinations.HOME) {
                     TopAppBar(
                         title = {
-                            OutlinedTextField(
-                                value = locationSearchBar,
-                                onValueChange = { locationSearchBar = it },
-                                label = { Text("Location") },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search Icon"
+                            Box(modifier = Modifier.fillMaxWidth().padding(end = 16.dp)) {
+                                OutlinedTextField(
+                                    value = searchQuery,
+                                    onValueChange = {
+                                        searchQuery = it
+                                        if (it.isNotBlank()) {
+                                            settingsViewModel?.searchStations(it)
+                                            isDropdownExpanded = true
+                                        } else {
+                                            isDropdownExpanded = false
+                                        }
+                                    },
+                                    label = { Text("Search location...") },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = "Search Icon"
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (searchQuery.isNotBlank()) {
+                                            IconButton(onClick = {
+                                                searchQuery = ""
+                                                isDropdownExpanded = false
+                                            }) {
+                                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                                            }
+                                        }
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                DropdownMenu(
+                                    expanded = isDropdownExpanded,
+                                    onDismissRequest = { isDropdownExpanded = false },
+                                    properties = PopupProperties(focusable = false),
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .background(MaterialTheme.colorScheme.surface)
+                                        .heightIn(max = 300.dp)
+                                ) {
+                                    // Quick Select: Current Location
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                                                Text("Current Location")
+                                            }
+                                        },
+                                        onClick = {
+                                            mapActionTrigger = Triple("current", null, System.currentTimeMillis())
+                                            searchQuery = "Current Location"
+                                            isDropdownExpanded = false
+                                        }
                                     )
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxSize()
-                            )
+
+                                    // Quick Select: Favorite Station
+                                    favoriteStation?.let { station ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                                                    Text("Favorite: ${station.stationName}")
+                                                }
+                                            },
+                                            onClick = {
+                                                mapActionTrigger = Triple("favorite", null, System.currentTimeMillis())
+                                                searchQuery = station.stationName
+                                                isDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+
+                                    if (searchResults.isNotEmpty()) {
+                                        HorizontalDivider()
+                                        searchResults.forEach { station ->
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text(station.stationName)
+                                                        Text(station.address, fontSize = 12.sp, color = Color.Gray)
+                                                    }
+                                                },
+                                                onClick = {
+                                                    mapActionTrigger = Triple("coord", (station.latitude to station.longitude), System.currentTimeMillis())
+                                                    searchQuery = station.stationName
+                                                    isDropdownExpanded = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     )
                 }
@@ -255,7 +359,7 @@ fun GasPricesNearMeApp(
                 when (currentDestination) {
                     AppDestinations.HOME -> {
                         if (settingsViewModel != null) {
-                            MapsScreen(settingsViewModel)
+                            MapsScreen(settingsViewModel, mapActionTrigger)
                         } else {
                             MapsScreenPreview()
                         }
@@ -290,7 +394,10 @@ fun GasPricesNearMeApp(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapsScreen(settingsViewModel: SettingsViewModel) {
+fun MapsScreen(
+    settingsViewModel: SettingsViewModel,
+    mapActionTrigger: Triple<String, Any?, Long>? = null
+) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var locationHelper by remember { mutableStateOf<CurLocationHelper?>(null) }
@@ -557,6 +664,29 @@ fun MapsScreen(settingsViewModel: SettingsViewModel) {
                         }
                     } catch (e: Exception) {
                         // Handle Geocoding error
+                    }
+                }
+            }
+        }
+
+        // Controls External Map Actions, from Top Search Bar
+        LaunchedEffect(mapActionTrigger) {
+            when (mapActionTrigger?.first) {
+                "current" -> {
+                    isFavoriteToggled = false
+                    centerOnCurrentLocation()
+                }
+                "favorite" -> {
+                    isFavoriteToggled = true
+                    centerOnFavorite()
+                }
+                "coord" -> {
+                    val coords = mapActionTrigger.second as? Pair<Double, Double>
+                    coords?.let { (lat, lon) ->
+                        rendererState.value?.renderer?.let { renderer ->
+                            renderer.mapGeoCenter = MapGeoPoint(lat, lon)
+                            renderer.mapZoom = getZoomFromRadius(searchRadius)
+                        }
                     }
                 }
             }
