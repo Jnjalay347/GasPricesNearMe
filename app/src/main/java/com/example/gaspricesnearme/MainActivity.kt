@@ -402,10 +402,15 @@ fun MapsScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var locationHelper by remember { mutableStateOf<CurLocationHelper?>(null) }
 
+    // Variable to allow adjusting the size of the currentLocation marker
+    val currentLocationMarkerScale = 0.5f
+
     // Collect settings from ViewModel
     val searchRadius by settingsViewModel.searchRadius.collectAsState()
     val favoriteStation by settingsViewModel.favoriteStation.collectAsState()
     val currentLocationStr by settingsViewModel.currentLocation.collectAsState()
+
+    var pinMarker by remember { mutableStateOf<MapPinMarker?>(null) }
 
     // Permission state
     var hasLocationPermission by remember {
@@ -543,6 +548,35 @@ fun MapsScreen(
 
         onDispose {
             fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    // Automatically updates or clears the circle marker for "Current Location"
+    LaunchedEffect(currentLocationStr, pinMarker) {
+        val markerManager = pinMarker ?: return@LaunchedEffect
+
+        if (currentLocationStr.isNullOrBlank()) {
+            markerManager.updateCurrentLocationMarker(null, null, "circle.svg")
+        } else {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = withContext(Dispatchers.IO) {
+                    geocoder.getFromLocationName(currentLocationStr!!, 1)
+                }
+                if (addresses?.isNotEmpty() == true) {
+                    val addr = addresses[0]
+                    withContext(Dispatchers.Main) {
+                        markerManager.updateCurrentLocationMarker(
+                            addr.latitude,
+                            addr.longitude,
+                            "circle.svg",
+                            currentLocationMarkerScale.toDouble()
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore geocoding errors
+            }
         }
     }
 
@@ -713,10 +747,11 @@ fun MapsScreen(
                             renderer.mapZoom = 10.0
                             locationHelper = CurLocationHelper(renderer)
 
-                            val pinMarker = MapPinMarker(
+                            val markerManager = MapPinMarker(
                                 renderer = renderer,
                                 assets = context.assets
                             )
+                            pinMarker = markerManager
 
                             CoroutineScope(Dispatchers.IO).launch {
 
@@ -747,7 +782,7 @@ fun MapsScreen(
                                         val lon = parts.getOrNull(1)?.toDoubleOrNull()
 
                                         if (lat != null && lon != null) {
-                                            pinMarker.addMapPin(lat, lon, "pin.svg")
+                                            markerManager.addMapPin(lat, lon, "pin.svg")
                                         }
                                     }
                                 }

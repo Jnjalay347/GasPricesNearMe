@@ -71,7 +71,7 @@ fun SettingsScreen(
                 settingsViewModel.saveFavoriteStation(userId, station)
             }
         },
-        onNavigateToSubmenu = onNavigateToSubmenu,
+//        onNavigateToSubmenu = onNavigateToSubmenu,
         onSignOut = {
             FirebaseAuth.getInstance().signOut()
             onSignOut()
@@ -96,7 +96,7 @@ fun SettingsScreenContent(
     onClearCurrentLocation: () -> Unit,
     onSearchStations: (String) -> Unit,
     onSaveFavoriteStation: (GasStationModel) -> Unit,
-    onNavigateToSubmenu: () -> Unit,
+//    onNavigateToSubmenu: () -> Unit,
     onSignOut: () -> Unit,
     darkModeEnabled: Boolean,
     onToggleDarkMode: (Boolean) -> Unit
@@ -168,39 +168,39 @@ fun SettingsScreenContent(
             color = Color.Gray
         )
 
-        // Notifications Submenu
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigateToSubmenu() }
-                .padding(vertical = 1.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = "Notification Settings",
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = "Customize alerts & reminders",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-            }
-            Text(
-                ">",
-                fontSize = 30.sp,
-                color = Color.Gray
-            )
-        }
-
-        // Divider
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 15.dp),
-            thickness = 1.dp,
-            color = Color.Gray
-        )
+//        // Notifications Submenu
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clickable { onNavigateToSubmenu() }
+//                .padding(vertical = 1.dp),
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Column {
+//                Text(
+//                    text = "Notification Settings",
+//                    fontWeight = FontWeight.SemiBold
+//                )
+//                Text(
+//                    text = "Customize alerts & reminders",
+//                    color = Color.Gray,
+//                    fontSize = 14.sp
+//                )
+//            }
+//            Text(
+//                ">",
+//                fontSize = 30.sp,
+//                color = Color.Gray
+//            )
+//        }
+//
+//        // Divider
+//        HorizontalDivider(
+//            modifier = Modifier.padding(vertical = 15.dp),
+//            thickness = 1.dp,
+//            color = Color.Gray
+//        )
 
         // Text Field Setting
         Text(
@@ -427,7 +427,7 @@ fun SettingsScreenPreview() {
         onClearCurrentLocation = {},
         onSearchStations = {},
         onSaveFavoriteStation = {},
-        onNavigateToSubmenu = {},
+//        onNavigateToSubmenu = {},
         onSignOut = {},
         darkModeEnabled = false,
         onToggleDarkMode = {}
