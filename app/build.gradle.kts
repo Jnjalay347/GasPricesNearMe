@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -17,6 +19,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val properties = Properties()
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { properties.load(it) }
+        }
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -29,17 +38,14 @@ android {
         }
     }
 
-    // RESTORED TO JAVA 11 (Matches your original project setup)
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    // Removed 'kotlinOptions' block to fix the "Unresolved reference" error.
-    // The Kotlin plugin will automatically inherit the Java 11 settings above.
-
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
