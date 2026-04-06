@@ -26,8 +26,7 @@ class MapScreen : Application() {
         super.onCreate()
 
         // Initialize GLMap with your API key
-        GLMapManager.Initialize(this, "b4da2cd3-a5ae-41ba-8f3b-4d963c49e8fe", null)
-    }
+        GLMapManager.Initialize(this, BuildConfig.API_KEY, null)    }
 }
 
 //User Location Marker
