@@ -55,6 +55,17 @@ Gas Prices Near Me solves this by providing a streamlined, location-aware map an
 
 ## ⚙️ Installation and Setup
 
+1. Clone the Repository
+2. Firebase Setup
+   - This app relies on Firebase for Authentication and Firestore.
+   - Ensure the google-services.json file is present in the app/ directory. (Note: If pulling from a public repo, you may need to supply your own Firebase project configuration).
+3. GLMap Configuration:
+   - The application uses GLMap for rendering.
+   - Although there is no GLMAP_KEY, you do need to add this api key to local.properties, in which the api key is **api_key = "b4da2cd3-a5ae-41ba-8f3b-4d963c49e8fe"**
+4. Build and Run
+   - Sync Gradle files and run the app on an emulator or physical device running Android SDK 24 (Nougat) or higher.
+   - Note: To test the Geofencing feature on an emulator, use the "Extended Controls -> Location" panel to spoof the device's coordinates and wait 2 minutes.
+
 ---
 
 ## 👨‍💻 The Team
