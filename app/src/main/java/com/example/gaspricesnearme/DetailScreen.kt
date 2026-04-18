@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 // ---------------------------------------------------------
 // Details View 1-5
 // ---------------------------------------------------------
@@ -37,7 +40,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun DetailScreen(
     station: GasStation,
-    onDirectionsClick: () -> Unit
+    onDirectionsClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -133,6 +137,22 @@ fun DetailScreen(
             style = MaterialTheme.typography.bodyLarge
         )
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 7. Back to List Button
+        OutlinedButton(
+            onClick = onBackClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Return to List")
+        }
+
         // Add extra space at bottom for scrolling
         Spacer(modifier = Modifier.height(50.dp))
     }
@@ -150,5 +170,9 @@ fun DetailScreenPreview() {
         distance = "0.5 mi",
         rating = 4.5f
     )
-    DetailScreen(station = mockStation, onDirectionsClick = {})
+    DetailScreen(
+        station = mockStation,
+        onDirectionsClick = {},
+        onBackClick = {}
+    )
 }

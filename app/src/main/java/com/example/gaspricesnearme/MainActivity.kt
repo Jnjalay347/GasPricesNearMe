@@ -587,11 +587,13 @@ fun MapsScreen(
             // Logic: If a station is selected, show DetailScreen. Otherwise, show List.
             if (selectedStation != null) {
                 // Show Detail View
-                // Note: Ensure DetailScreen.kt is created or pasted in this file
                 DetailScreen(
                     station = selectedStation!!,
                     onDirectionsClick = {
                         // TODO: Handle Google Maps Intent here
+                    },
+                    onBackClick = {
+                        selectedStation = null
                     }
                 )
             } else {
