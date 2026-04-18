@@ -648,6 +648,38 @@ fun MapsScreen(
     ) { innerPadding ->
         // Adjusts Zoom in/Zoom out values for the Floating Action Button
         val rendererState = remember { mutableStateOf<GLMapView?>(null) }
+        
+        // Effect to handle map changes and UI when a station is selected
+        LaunchedEffect(selectedStation, pinMarker, rendererState.value) {
+            val station = selectedStation
+            val renderer = rendererState.value?.renderer
+            if (station != null && renderer != null && pinMarker != null) {
+                val parts = station.coordinates.split("`")
+                val lat = parts.getOrNull(0)?.toDoubleOrNull()
+                val lon = parts.getOrNull(1)?.toDoubleOrNull()
+                if (lat != null && lon != null) {
+                    // Overlay with ChosenMapPin.svg
+                    pinMarker?.updateChosenMarker(lat, lon, "ChosenMapPin.svg", 1.2)
+
+                    // Zooms in and centers pin at top-middle
+                    renderer.mapZoom = 16.0
+
+                    // Offset to put the pin in the top-middle (roughly 0.003 degrees south of pin)
+                    val offset = 0.003
+                    renderer.mapGeoCenter = MapGeoPoint(lat - offset, lon)
+
+                    // Ensures bottom sheet is expanded to show details
+                    scaffoldState.bottomSheetState.expand()
+                }
+            } else if (station == null) {
+                // Clear chosen marker when no station is selected
+                pinMarker?.updateChosenMarker(null, null, "")
+
+                // Return sheet to peek height when returning to list
+                scaffoldState.bottomSheetState.partialExpand()
+            }
+        }
+
         fun zoomIn() {
             rendererState.value?.renderer?.let {
                 it.mapZoom += 0.5
