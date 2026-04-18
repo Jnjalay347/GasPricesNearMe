@@ -379,6 +379,7 @@ fun GasPricesNearMeApp(
                         }
                     }
                     AppDestinations.USER_REPORT -> ReportScreen(
+                        settingsViewModel = settingsViewModel,
                         initialAddress = prefillData?.address ?: "",
                         initialPrices = prefillData?.fullPrices ?: ""
                     )
