@@ -50,6 +50,24 @@ Gas Prices Near Me solves this by providing a streamlined, location-aware map an
 ---
 
 ## 📱 Screenshots
+### **Main Screen**
+<img width="511" height="820" alt="image" src="https://github.com/user-attachments/assets/eff2384c-d319-4b47-a722-ad62ab069bd6" />
+
+### **Settings Page**
+<img width="510" height="820" alt="image" src="https://github.com/user-attachments/assets/a86a6f22-3b61-4e58-a406-3cc79a8e7ffc" />
+
+### **Report Form Page**
+<img width="511" height="820" alt="image" src="https://github.com/user-attachments/assets/dddac1df-f674-4013-9225-19fe514af810" />
+
+### **List View**
+<img width="509" height="820" alt="image" src="https://github.com/user-attachments/assets/25e82c47-e434-4e52-a58f-4124ca72be57" />
+
+### **Detailed View**
+<img width="508" height="819" alt="image" src="https://github.com/user-attachments/assets/b70ca5a1-4438-4efe-b020-c7aa28c20e5c" />
+
+### **Dark Mode**
+<img width="509" height="820" alt="image" src="https://github.com/user-attachments/assets/ba45ce23-f58e-414d-906c-10b7c9e39ca6" />
+
 
 ---
 
