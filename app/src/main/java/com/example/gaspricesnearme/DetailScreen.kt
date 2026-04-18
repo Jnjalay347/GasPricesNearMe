@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
@@ -41,7 +42,8 @@ import androidx.compose.ui.unit.sp
 fun DetailScreen(
     station: GasStation,
     onDirectionsClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onReportPricesClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -151,6 +153,23 @@ fun DetailScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("Return to List")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 8. Report Prices Button
+        Button(
+            onClick = onReportPricesClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Report Prices")
         }
 
         // Add extra space at bottom for scrolling
