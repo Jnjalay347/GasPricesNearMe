@@ -209,6 +209,8 @@ fun GasPricesNearMeApp(
         mutableStateOf(AppDestinations.HOME)
     }
 
+    var prefillData by remember { mutableStateOf<GasStation?>(null) }
+
 
     // Map Search Bar States
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -240,7 +242,12 @@ fun GasPricesNearMeApp(
                     },
                     label = { Text(it.label) },
                     selected = it == currentDestination,
-                    onClick = { currentDestination = it }
+                    onClick = { 
+                        if (it != AppDestinations.USER_REPORT) {
+                            prefillData = null
+                        }
+                        currentDestination = it 
+                    }
                 )
             }
         }
@@ -359,12 +366,22 @@ fun GasPricesNearMeApp(
                 when (currentDestination) {
                     AppDestinations.HOME -> {
                         if (settingsViewModel != null) {
-                            MapsScreen(settingsViewModel, mapActionTrigger)
+                            MapsScreen(
+                                settingsViewModel, 
+                                mapActionTrigger,
+                                onReportPrices = { station ->
+                                    prefillData = station
+                                    currentDestination = AppDestinations.USER_REPORT
+                                }
+                            )
                         } else {
                             MapsScreenPreview()
                         }
                     }
-                    AppDestinations.USER_REPORT -> ReportScreen()
+                    AppDestinations.USER_REPORT -> ReportScreen(
+                        initialAddress = prefillData?.address ?: "",
+                        initialPrices = prefillData?.fullPrices ?: ""
+                    )
                     AppDestinations.SETTINGS -> {
                         if (settingsViewModel != null) {
                             SettingsScreen(
@@ -396,7 +413,8 @@ fun GasPricesNearMeApp(
 @Composable
 fun MapsScreen(
     settingsViewModel: SettingsViewModel,
-    mapActionTrigger: Triple<String, Any?, Long>? = null
+    mapActionTrigger: Triple<String, Any?, Long>? = null,
+    onReportPrices: (GasStation) -> Unit = {}
 ) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -507,7 +525,8 @@ fun MapsScreen(
                 address = it.address,
                 price = "$$price",
                 distance = "",
-                rating = it.rating.toFloat()
+                rating = it.rating.toFloat(),
+                fullPrices = it.prices
             )
         }
     }
@@ -594,6 +613,9 @@ fun MapsScreen(
                     },
                     onBackClick = {
                         selectedStation = null
+                    },
+                    onReportPricesClick = {
+                        onReportPrices(selectedStation!!)
                     }
                 )
             } else {
@@ -632,7 +654,8 @@ fun MapsScreen(
                                                     address = dbStation.address,
                                                     price ="$$price",
                                                     distance = "",
-                                                    rating = dbStation.rating.toFloat()
+                                                    rating = dbStation.rating.toFloat(),
+                                                    fullPrices = dbStation.prices
                                                 )
                                             }
                                         }
@@ -912,7 +935,8 @@ data class GasStation(
     val address: String,
     val price: String,
     val distance: String,
-    val rating: Float
+    val rating: Float,
+    val fullPrices: String? = null
 )
 
 // Enum for Nav

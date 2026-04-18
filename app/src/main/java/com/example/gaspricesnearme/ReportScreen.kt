@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.material3.Button
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
@@ -53,25 +54,39 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportScreen() {
-    var stationAddress by remember { mutableStateOf("") }
-    var cashStandard by remember { mutableStateOf("") }
-    var cashPlus by remember { mutableStateOf("") }
-    var cashPremium by remember { mutableStateOf("") }
-    var creditStandard by remember { mutableStateOf("") }
-    var creditPlus by remember { mutableStateOf("") }
-    var creditPremium by remember { mutableStateOf("") }
+fun ReportScreen(
+    initialAddress: String = "",
+    initialPrices: String = ""
+) {
+    var stationAddress by remember { mutableStateOf(initialAddress) }
+    
+    // Split initialPrices if available (format: cashStd`cashPlus`cashPremium`creditStd`creditPlus`creditPremium)
+    val pricesList = initialPrices.split("`")
+    
+    var cashStandard by remember { mutableStateOf(pricesList.getOrNull(0) ?: "") }
+    var cashPlus by remember { mutableStateOf(pricesList.getOrNull(1) ?: "") }
+    var cashPremium by remember { mutableStateOf(pricesList.getOrNull(2) ?: "") }
+    var creditStandard by remember { mutableStateOf(pricesList.getOrNull(3) ?: "") }
+    var creditPlus by remember { mutableStateOf(pricesList.getOrNull(4) ?: "") }
+    var creditPremium by remember { mutableStateOf(pricesList.getOrNull(5) ?: "") }
+    
     var selectedRating by remember { mutableIntStateOf(0) }
-    var currentDestination by rememberSaveable {
-        mutableStateOf(AppDestinations.USER_REPORT)
-    }
-    var locationSearchBar by rememberSaveable {
-        mutableStateOf("")
-    }
-
+    
     val repo = remember { FirebaseRepository() }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Update state if initial values change (e.g. when navigating from Detail View)
+    LaunchedEffect(initialAddress, initialPrices) {
+        stationAddress = initialAddress
+        val p = initialPrices.split("`")
+        cashStandard = p.getOrNull(0) ?: ""
+        cashPlus = p.getOrNull(1) ?: ""
+        cashPremium = p.getOrNull(2) ?: ""
+        creditStandard = p.getOrNull(3) ?: ""
+        creditPlus = p.getOrNull(4) ?: ""
+        creditPremium = p.getOrNull(5) ?: ""
+    }
 
 
     Scaffold(
@@ -284,4 +299,3 @@ fun PriceTextField(value: String, onValueChange: (String) -> Unit) {
 fun ReportScreenPreview() {
     ReportScreen()
 }
-
