@@ -13,6 +13,7 @@ class MapPinMarker(
 
     private val markers = mutableListOf<GLMapImage>()
     private var currentLocationMarker: GLMapImage? = null
+    private var chosenMarker: GLMapImage? = null
 
     // Adds a single Map Pin
     fun addMapPin(
@@ -69,6 +70,24 @@ class MapPinMarker(
         }
     }
 
+    // Updates or adds the "Chosen" marker overlay
+    fun updateChosenMarker(
+        latitude: Double?,
+        longitude: Double?,
+        svgFileName: String,
+        scale: Double = 1.0
+    ) {
+        chosenMarker?.let {
+            renderer.remove(it)
+            markers.remove(it)
+            chosenMarker = null
+        }
+
+        if (latitude != null && longitude != null) {
+            chosenMarker = addMapPin(latitude, longitude, svgFileName, scale)
+        }
+    }
+
     // Adds multiple Map Pins
     fun addMultipleMapPins(
         locations: List<Pair<Double, Double>>,
@@ -83,5 +102,6 @@ class MapPinMarker(
         markers.forEach { renderer.remove(it) }
         markers.clear()
         currentLocationMarker = null
+        chosenMarker = null
     }
 }
