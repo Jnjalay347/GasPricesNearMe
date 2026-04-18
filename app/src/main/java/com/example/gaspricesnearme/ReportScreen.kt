@@ -1,5 +1,6 @@
 package com.example.gaspricesnearme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,10 +44,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.window.PopupProperties
+import com.example.gaspricesnearme.model.GasStation
+import com.example.gaspricesnearme.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------
@@ -55,6 +64,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
+    settingsViewModel: SettingsViewModel? = null,
     initialAddress: String = "",
     initialPrices: String = ""
 ) {
@@ -75,6 +85,21 @@ fun ReportScreen(
     val repo = remember { FirebaseRepository() }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Autocomplete states
+    var searchQuery by remember { mutableStateOf("") }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+    val searchResults by settingsViewModel?.searchResults?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+
+    // Trigger search when query changes
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotBlank()) {
+            settingsViewModel?.searchStations(searchQuery)
+            isDropdownExpanded = true
+        } else {
+            isDropdownExpanded = false
+        }
+    }
 
     // Update state if initial values change (e.g. when navigating from Detail View)
     LaunchedEffect(initialAddress, initialPrices) {
@@ -107,6 +132,76 @@ fun ReportScreen(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
             )
+
+            // Search Bar for Gas Stations
+            Text(
+                text = "Search Gas Station",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Box {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Type name or address...") },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
+                )
+
+                DropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false },
+                    properties = PopupProperties(focusable = false),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .heightIn(max = 240.dp)
+                ) {
+                    if (searchResults.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text("No stations found.") },
+                            onClick = { }
+                        )
+                    } else {
+                        searchResults.forEach { station ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(station.stationName)
+                                        Text(
+                                            station.address,
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    stationAddress = station.address
+                                    searchQuery = station.stationName
+                                    
+                                    // Auto-fill prices
+                                    if (station.prices.isNotBlank()) {
+                                        val p = station.prices.split("`")
+                                        cashStandard = p.getOrNull(0) ?: ""
+                                        cashPlus = p.getOrNull(1) ?: ""
+                                        cashPremium = p.getOrNull(2) ?: ""
+                                        creditStandard = p.getOrNull(3) ?: ""
+                                        creditPlus = p.getOrNull(4) ?: ""
+                                        creditPremium = p.getOrNull(5) ?: ""
+                                    }
+                                    
+                                    isDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Station Address",
@@ -260,6 +355,7 @@ fun ReportScreen(
 
                             //clear form
                             stationAddress = ""
+                            searchQuery = ""
                             cashStandard = ""; cashPlus = ""; cashPremium = ""
                             creditStandard = ""; creditPlus = ""; creditPremium = ""
                             selectedRating = 0

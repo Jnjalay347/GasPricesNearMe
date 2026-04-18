@@ -15,24 +15,44 @@ class GasStationRepository {
 
     suspend fun searchStations(query: String): List<GasStation> {
         return try {
-            val snapshot = firestore.collection("stations")
+            // Search by station name
+            val nameQuery = firestore.collection("stations")
                 .whereGreaterThanOrEqualTo("stationName", query)
                 .whereLessThanOrEqualTo("stationName", query + "\uf8ff")
                 .get()
-                .await()
 
-            snapshot.documents.mapNotNull { doc ->
-                val station = doc.toObject(GasStation::class.java)
-                
-                // Extract coordinates from document ID (Format: "latitude`longitude")
-                val docId = doc.id
-                val coordinates = docId.split("`")
-                val lat = coordinates.getOrNull(0)?.toDoubleOrNull() ?: 0.0
-                val lon = coordinates.getOrNull(1)?.toDoubleOrNull() ?: 0.0
-                
-                // Return station with extracted coordinates populated
-                station?.copy(latitude = lat, longitude = lon)
+            // Search by address
+            val addressQuery = firestore.collection("stations")
+                .whereGreaterThanOrEqualTo("address", query)
+                .whereLessThanOrEqualTo("address", query + "\uf8ff")
+                .get()
+
+            val nameSnapshot = nameQuery.await()
+            val addressSnapshot = addressQuery.await()
+
+            val resultsMap = mutableMapOf<String, GasStation>()
+
+            fun processSnapshot(snapshot: com.google.firebase.firestore.QuerySnapshot) {
+                snapshot.documents.forEach { doc ->
+                    val station = doc.toObject(GasStation::class.java)
+                    if (station != null) {
+                        val docId = doc.id
+                        val coordinates = docId.split("`")
+                        val lat = coordinates.getOrNull(0)?.toDoubleOrNull() ?: 0.0
+                        val lon = coordinates.getOrNull(1)?.toDoubleOrNull() ?: 0.0
+                        resultsMap[docId] = station.copy(
+                            latitude = lat,
+                            longitude = lon,
+                            prices = doc.getString("prices") ?: ""
+                        )
+                    }
+                }
             }
+
+            processSnapshot(nameSnapshot)
+            processSnapshot(addressSnapshot)
+
+            resultsMap.values.toList()
         } catch (e: Exception) {
             emptyList()
         }
