@@ -50,8 +50,14 @@ Gas Prices Near Me solves this by providing a streamlined, location-aware map an
 ---
 
 ## 📱 Screenshots
+### **Sign Up Screen**
+<img width="486" height="782" alt="image" src="https://github.com/user-attachments/assets/cb1e280b-6a1d-4feb-a49d-28e040e6bd49" />
+
+### **Sign In Screen**
+<img width="480" height="782" alt="image" src="https://github.com/user-attachments/assets/7bc09425-e11d-4f41-b6d0-8980fff5cbb1" />
+
 ### **Main Screen**
-<img width="511" height="820" alt="image" src="https://github.com/user-attachments/assets/eff2384c-d319-4b47-a722-ad62ab069bd6" />
+<img width="484" height="782" alt="image" src="https://github.com/user-attachments/assets/fa39c0a8-1654-4587-8989-cc23d0322f30" />
 
 ### **Settings Page**
 <img width="510" height="820" alt="image" src="https://github.com/user-attachments/assets/a86a6f22-3b61-4e58-a406-3cc79a8e7ffc" />
@@ -60,10 +66,10 @@ Gas Prices Near Me solves this by providing a streamlined, location-aware map an
 <img width="511" height="820" alt="image" src="https://github.com/user-attachments/assets/dddac1df-f674-4013-9225-19fe514af810" />
 
 ### **List View**
-<img width="509" height="820" alt="image" src="https://github.com/user-attachments/assets/25e82c47-e434-4e52-a58f-4124ca72be57" />
+<img width="486" height="780" alt="image" src="https://github.com/user-attachments/assets/5cdf9d42-f5df-49f8-9b4e-6533e64eab2f" />
 
 ### **Detailed View**
-<img width="508" height="819" alt="image" src="https://github.com/user-attachments/assets/b70ca5a1-4438-4efe-b020-c7aa28c20e5c" />
+<img width="482" height="780" alt="image" src="https://github.com/user-attachments/assets/04de2ece-2c31-4e2a-8650-eef6303e64cc" />
 
 ### **Dark Mode**
 <img width="509" height="820" alt="image" src="https://github.com/user-attachments/assets/ba45ce23-f58e-414d-906c-10b7c9e39ca6" />
