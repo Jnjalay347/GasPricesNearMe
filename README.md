@@ -50,6 +50,9 @@ Gas Prices Near Me solves this by providing a streamlined, location-aware map an
 ---
 
 ## 📱 Screenshots
+### **App Logo & Background**
+<img width="484" height="730" alt="image" src="https://github.com/user-attachments/assets/5d38327a-1e9b-4881-b870-73dd1ab514d4" />
+
 ### **Sign Up Screen**
 <img width="486" height="782" alt="image" src="https://github.com/user-attachments/assets/cb1e280b-6a1d-4feb-a49d-28e040e6bd49" />
 
