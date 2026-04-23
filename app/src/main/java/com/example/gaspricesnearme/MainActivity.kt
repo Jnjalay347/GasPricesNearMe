@@ -15,6 +15,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,6 +81,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gaspricesnearme.model.GasStation as GasStationModel
 import com.example.gaspricesnearme.ui.theme.GasPricesNearMeTheme
+import com.example.gaspricesnearme.ui.theme.GpnmBlue
+import com.example.gaspricesnearme.ui.theme.GpnmBlueDark
 import com.example.gaspricesnearme.viewmodel.SettingsViewModel
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -372,7 +375,8 @@ fun GasPricesNearMeApp(
                                 onReportPrices = { station ->
                                     prefillData = station
                                     currentDestination = AppDestinations.USER_REPORT
-                                }
+                                },
+                                darkModeEnabled = darkModeEnabled
                             )
                         } else {
                             MapsScreenPreview()
@@ -415,7 +419,8 @@ fun GasPricesNearMeApp(
 fun MapsScreen(
     settingsViewModel: SettingsViewModel,
     mapActionTrigger: Triple<String, Any?, Long>? = null,
-    onReportPrices: (GasStation) -> Unit = {}
+    onReportPrices: (GasStation) -> Unit = {},
+    darkModeEnabled: Boolean = false
 ) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -600,9 +605,12 @@ fun MapsScreen(
         }
     }
 
+    val sheetBgColor = if (darkModeEnabled) GpnmBlueDark else GpnmBlue
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 120.dp,
+        sheetContainerColor = sheetBgColor,
         sheetContent = {
             // Logic: If a station is selected, show DetailScreen. Otherwise, show List.
             if (selectedStation != null) {
@@ -617,7 +625,8 @@ fun MapsScreen(
                     },
                     onReportPricesClick = {
                         onReportPrices(selectedStation!!)
-                    }
+                    },
+                    darkModeEnabled = darkModeEnabled
                 )
             } else {
                 // Show List View
