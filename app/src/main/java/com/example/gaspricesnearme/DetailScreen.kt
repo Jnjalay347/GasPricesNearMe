@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gaspricesnearme.ui.theme.GpnmBlue
+import com.example.gaspricesnearme.ui.theme.GpnmBlueDark
 
 // ---------------------------------------------------------
 // Details View 1-5
@@ -43,11 +45,17 @@ fun DetailScreen(
     station: GasStation,
     onDirectionsClick: () -> Unit,
     onBackClick: () -> Unit,
-    onReportPricesClick: () -> Unit = {}
+    onReportPricesClick: () -> Unit = {},
+    darkModeEnabled: Boolean = false
 ) {
+    val bgColor = if (darkModeEnabled) GpnmBlueDark else GpnmBlue
+    val textColor = if (darkModeEnabled) Color.LightGray else Color.DarkGray
+    val primaryText = if (darkModeEnabled) Color.White else Color.Black
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(bgColor)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -65,7 +73,8 @@ fun DetailScreen(
         Text(
             text = station.name,
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = primaryText
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -74,7 +83,7 @@ fun DetailScreen(
         Text(
             text = station.address,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
+            color = textColor
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -95,7 +104,7 @@ fun DetailScreen(
                 Text(
                     text = if (station.distance.isBlank()) "Distance unavailable" else "${station.distance} away",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = textColor
                 )
             }
 
@@ -136,7 +145,8 @@ fun DetailScreen(
         // 6. Rating Info
         Text(
             text = "Rating: ${station.rating} ★",
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            color = primaryText
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -144,7 +154,8 @@ fun DetailScreen(
         // 7. Back to List Button
         OutlinedButton(
             onClick = onBackClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = if (darkModeEnabled) Color.White else Color.Black)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
