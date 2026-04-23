@@ -1,8 +1,9 @@
 package com.example.gaspricesnearme
 
-import android.R
+//import android.R
 import android.app.Activity
 import android.widget.Button
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -92,24 +94,33 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Gas Prices Near Me App Icon
+            Image(
+                painter = painterResource(id = R.drawable.gpnm_foreground),
+                contentDescription = "App Icon",
+                modifier = Modifier
+                    .size(280.dp)
+                    .padding(bottom = 1.dp)
+            )
+
             Text(
                 text = "Gas Prices Near Me",
-                fontSize = 28.sp,
+                fontSize = 50.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 48.dp)
             )
 
             Text(
                 text = "Create an account",
-                fontSize = 20.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
-                text = "Enter your phone number to sign up for this app",
+                text = "(Enter your phone number to sign up for this app)",
                 textAlign = TextAlign.Center,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
@@ -119,7 +130,11 @@ fun SignUpScreen(
                 label = { Text("(xxx)-xxx-xxxx") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                )
             )
 
             //OTP field
@@ -131,7 +146,11 @@ fun SignUpScreen(
                     label = { Text("Enter OTP")},
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -218,7 +237,8 @@ fun SignUpScreen(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
             ) {
                 Text("Continue with Google", color = Color.Black)
             }
@@ -238,7 +258,7 @@ fun SignUpScreen(
             text = "By clicking continue, you agree to our Terms of Service and Privacy Policy",
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = Color.Black,
             modifier = Modifier.padding(bottom = 16.dp)
         )
     }
